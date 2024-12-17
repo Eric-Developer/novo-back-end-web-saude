@@ -27,7 +27,6 @@ class AuthService {
         phone: string,
     ): Promise<PendingUser | null> {
         try {
-            // Verificando se já existe um usuário com o mesmo email
             const emailExists = await this.pendingUserRepository.findOne({ where: { email } })
 
             if (emailExists) {
@@ -36,7 +35,6 @@ class AuthService {
 
             const hashedPassword = await this.hashPassword(password)
 
-            // Criando e salvando o usuário pendente
             const pendingUser = this.pendingUserRepository.create({
                 name,
                 email,
@@ -120,7 +118,7 @@ class AuthService {
 
         if (!user) {
             throw new Error("Usuário não encontrado")
-        }
+        } 
 
         const validPassword = await bcrypt.compare(password, user.password)
         if (!validPassword) {

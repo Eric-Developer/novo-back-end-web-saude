@@ -13,6 +13,8 @@ class UserService {
     public async fetchAllUsers() {
         try {
             const users = await this.userRepository.find();
+                if(users.length === 0)
+                    throw new Error('Nenhum usuário encontrado')
             return users;
         } catch (error) {
             throw new Error(`Erro ao buscar usuários: ${error instanceof Error ? error.message : String(error)}`);
@@ -26,7 +28,7 @@ class UserService {
             if (!user) throw new Error("Usuário não encontrado");
             return user;
         } catch (error) {
-            throw new Error(`Erro ao buscar usuário por ID: ${error instanceof Error ? error.message : String(error)}`);
+            throw new Error(`Erro ao buscar usuário: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 

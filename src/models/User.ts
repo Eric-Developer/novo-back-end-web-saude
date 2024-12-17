@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
 
 enum UserType {
-    Common = "common",     // Valor padrão
+    Common = "common",  
     Functional = "functional",
     Admin = "admin"
 }
@@ -12,7 +12,7 @@ interface IUser {
     email: string
     password: string
     phone: string
-    user_type: UserType   // Mudança aqui para usar o tipo enum
+    user_type: UserType  
     image: string
     is_active: boolean
 }

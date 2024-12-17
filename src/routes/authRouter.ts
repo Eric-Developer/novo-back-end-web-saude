@@ -1,12 +1,27 @@
 import AuthService from "../services/authService"
 import { Router } from "express"
 import { Request, Response } from 'express'
+import { validateFields } from "../validators/validateFields";
 
 const authRouter = Router()
 
 authRouter.post("/register", async (req: Request, res: Response) => {
     const { name, email, password, phone } = req.body
     try {
+
+        const updateValidationRules = [
+            { field: "name", required: true },
+            { field: "email", required: true, isEmail: true },
+            { field: "phone", required: true },
+            { field: "password", requirid: true}
+        ];
+        
+        const errors = validateFields(req.body, updateValidationRules);
+
+        if (errors.length) {
+            res.status(400).json({ errors });
+            return;
+        }
         const pendingUser = await AuthService.register(name, email, password, phone)
 
         res.status(201).json({
@@ -43,6 +58,18 @@ authRouter.post('/verify', async (req: Request, res: Response) => {
 authRouter.post('/login', async(req: Request, res: Response) => {
     const { email, password } = req.body
     try {
+
+        const updateValidationRules = [
+            { field: "email", required: true, isEmail: true },
+            { field: "password", requirid: true}
+        ];
+        
+        const errors = validateFields(req.body, updateValidationRules);
+
+        if (errors.length) {
+            res.status(400).json({ errors });
+            return;
+        }
         const token = await AuthService.signIn(email, password)
         res.status(200).json({ token })
     } catch (error) {

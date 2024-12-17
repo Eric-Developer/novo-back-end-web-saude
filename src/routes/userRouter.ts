@@ -5,34 +5,33 @@ import { validateFields } from "../validators/validateFields";
 const userRouter = Router();
 
 
-// Route to search all users
+// Route paea listar os usuários
 userRouter.get("/search/users", async (req: Request, res: Response) => {
     try {
         const users = await userService.fetchAllUsers();
         res.status(200).json(users);
     } catch (error) {
-        res.status(500).json({ error: error instanceof Error ? error.message : "Internal server error" });
+        res.status(500).json({ error: error instanceof Error ? error.message : "Erro interno do servidor" });
     }
 });
 
-// Route to search user by ID
+// Rota para listar um único usuário
 userRouter.get("/search/user/:id", async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
         const user = await userService.fetchUserById(Number(id));
         res.status(200).json(user);
     } catch (error) {
-        res.status(404).json({ error: error instanceof Error ? error.message : "User not found" });
+        res.status(404).json({ error: error instanceof Error ? error.message : "Usuário não encontrado" });
     }
 });
 
-// Route to update user
+// Rota para alterar informações do usuário
 userRouter.put("/update/user/:id", async (req: Request, res: Response) => {
    
     try {
         const { id } = req.params;
         
-        // Definindo as regras de validação para os campos obrigatórios
         const updateValidationRules = [
             { field: "name", required: true },
             { field: "email", required: true, isEmail: true },
@@ -48,11 +47,12 @@ userRouter.put("/update/user/:id", async (req: Request, res: Response) => {
         const updatedUser = await userService.modifyUser(Number(id), req.body);
         res.status(200).json(updatedUser);
     } catch (error) {
-        res.status(500).json({ error: error instanceof Error ? error.message : "Error updating user" });
+        res.status(500).json({ error: error instanceof Error ? error.message : "Erro ao atualizar usuário" });
+
     }
 });
 
-// Route to update user image
+// Rota para alterar a imagem do usuário
 userRouter.patch("/update_image/user/:id", async (req: Request, res: Response) => {
    
     try {
@@ -63,7 +63,6 @@ userRouter.patch("/update_image/user/:id", async (req: Request, res: Response) =
             }
         ];
 
-        // Validação dos campos de imagem
         const errors = validateFields(req.body, imageValidationRules);
         if (errors.length) {
             res.status(400).json({ errors });
@@ -73,25 +72,25 @@ userRouter.patch("/update_image/user/:id", async (req: Request, res: Response) =
         const { image } = req.body;
     
         if (!image) {
-            res.status(400).json({ error: "Image is required" });
+            res.status(400).json({ error: "A imagem é obrigatória" });
             return
         }
         const updatedUser = await userService.updateUserAvatar(Number(id), image);
         res.status(200).json(updatedUser);
     } catch (error) {
-        res.status(500).json({ error: error instanceof Error ? error.message : "Error updating image" });
+        res.status(500).json({ error: error instanceof Error ? error.message : "Erro ao atualizar a imagem" });
     }
 });
 
-// Route to delete user
+// Rota para deletar usuário
 userRouter.delete("/delete/user/:id", async (req: Request, res: Response) => {
     const { id } = req.params;
 
     try {
         await userService.deleteUser(Number(id));
-        res.status(200).json({ message: "User successfully deleted" });
+        res.status(204).send();
     } catch (error) {
-        res.status(500).json({ error: error instanceof Error ? error.message : "Error deleting user" });
+        res.status(500).json({ error: error instanceof Error ? error.message : "Erro ao deletar usuário" });
     }
 });
 
