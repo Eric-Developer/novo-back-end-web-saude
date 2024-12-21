@@ -44,7 +44,6 @@ class AuthService {
 
             await this.pendingUserRepository.save(pendingUser)
 
-            // Gerando o token para verificação
             const secretKey = process.env.SECRET_KEY
 
             if (!secretKey) {
@@ -54,7 +53,6 @@ class AuthService {
             const token = jwt.sign({ id: pendingUser.id }, secretKey, { expiresIn: '1h' })
             console.log(token)
 
-            // Enviando o email de verificação
             sendAccountVerificationEmail(email, token)
 
             return pendingUser
@@ -150,7 +148,7 @@ class AuthService {
 
         await sendPasswordRecoveryEmail(email, token)
         return
-    }
+    } 
 
     public async resetPassword(token: string, newPassword: string) {
         const secretKey = process.env.SECRET_KEY
@@ -161,7 +159,7 @@ class AuthService {
             const decodedToken = jwt.verify(token, secretKey) as { email: string}
             
             const user = await this.userRepository.findOne({
-                where: { email: decodedToken.email }
+                where: { email: decodedToken.email } 
             })
 
             if(!user) {

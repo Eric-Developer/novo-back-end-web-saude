@@ -1,6 +1,6 @@
 import nodemailer, { Transporter, SendMailOptions } from 'nodemailer';
 
-const siteUrl = 'URL';  // Altere para a URL do seu site
+const siteUrl = 'URL';
 
 function createTransporter(): Transporter {
     const email = process.env.EMAIL;
