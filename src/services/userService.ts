@@ -1,6 +1,7 @@
 import AppDataSource from "../database/config";
 import User from "../models/User";
 import { Repository } from "typeorm";
+import CustomError from "../utils/CustomError";
 
 class UserService {
     private userRepository: Repository<User>;
@@ -9,41 +10,54 @@ class UserService {
         this.userRepository = AppDataSource.getRepository(User);
     }
 
-    // Obter todos os usuários
     public async fetchAllUsers() {
         try {
             const users = await this.userRepository.find();
-                if(users.length === 0)
-                    throw new Error('Nenhum usuário encontrado')
+            if (users.length === 0) {
+                throw new CustomError(
+                    'Nenhum usuário encontrado',
+                    404,
+                    'NO_USERS_FOUND'
+                );
+            }
             return users;
         } catch (error) {
-            throw new Error(`Erro ao buscar usuários: ${error instanceof Error ? error.message : String(error)}`);
+            throw new CustomError(
+                `Erro ao buscar usuários: ${error instanceof Error ? error.message : String(error)}`,
+                500,
+                'USER_FETCH_FAILED'
+            );
         }
     }
 
-    // Buscar usuário pelo ID
     public async fetchUserById(id: number) {
         try {
             const user = await this.userRepository.findOne({ where: { id } });
-            if (!user) throw new Error("Usuário não encontrado");
+            if (!user) throw new CustomError("Usuário não encontrado", 404, "USER_NOT_FOUND");
             return user;
         } catch (error) {
-            throw new Error(`Erro ao buscar usuário: ${error instanceof Error ? error.message : String(error)}`);
+            throw new CustomError(
+                `Erro ao buscar usuário: ${error instanceof Error ? error.message : String(error)}`,
+                500,
+                'USER_FETCH_FAILED'
+            );
         }
     }
 
-    // Buscar usuário pelo email
     public async fetchUserByEmail(email: string) {
         try {
-            const user = await this.userRepository.findOne({ where: { email }});
-            if (!user) throw new Error("Usuário não encontrado");
+            const user = await this.userRepository.findOne({ where: { email } });
+            if (!user) throw new CustomError("Usuário não encontrado", 404, "USER_NOT_FOUND");
             return user;
         } catch (error) {
-            throw new Error(`Erro ao buscar usuário por email: ${error instanceof Error ? error.message : String(error)}`);
+            throw new CustomError(
+                `Erro ao buscar usuário por email: ${error instanceof Error ? error.message : String(error)}`,
+                500,
+                'USER_FETCH_FAILED'
+            );
         }
     }
 
-    // Atualizar dados do usuário
     public async modifyUser(id: number, updatedData: Partial<User>) {
         try {
             const user = await this.fetchUserById(id);
@@ -51,11 +65,14 @@ class UserService {
             const updatedUser = await this.userRepository.save(user);
             return updatedUser;
         } catch (error) {
-            throw new Error(`Erro ao atualizar dados do usuário: ${error instanceof Error ? error.message : String(error)}`);
+            throw new CustomError(
+                `Erro ao atualizar dados do usuário: ${error instanceof Error ? error.message : String(error)}`,
+                500,
+                'USER_UPDATE_FAILED'
+            );
         }
     }
 
-    // Atualizar imagem do usuário
     public async updateUserAvatar(id: number, image: string) {
         try {
             const user = await this.fetchUserById(id);
@@ -63,16 +80,25 @@ class UserService {
             const updatedUser = await this.userRepository.save(user);
             return updatedUser;
         } catch (error) {
-            throw new Error(`Erro ao atualizar imagem do usuário: ${error instanceof Error ? error.message : String(error)}`);
+            throw new CustomError(
+                `Erro ao atualizar imagem do usuário: ${error instanceof Error ? error.message : String(error)}`,
+                500,
+                'USER_AVATAR_UPDATE_FAILED'
+            );
         }
     }
+
     public async deleteUser(id: number) {
         try {
             const user = await this.fetchUserById(id); 
             await this.userRepository.remove(user); 
             return { message: "Usuário deletado com sucesso" };
         } catch (error) {
-            throw new Error(`Erro ao deletar usuário: ${error instanceof Error ? error.message : String(error)}`);
+            throw new CustomError(
+                `Erro ao deletar usuário: ${error instanceof Error ? error.message : String(error)}`,
+                500,
+                'USER_DELETION_FAILED'
+            ); 
         }
     }
 }

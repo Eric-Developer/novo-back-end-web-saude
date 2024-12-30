@@ -6,14 +6,17 @@ type ValidationRule = {
     isEmail?: boolean;
 };
 
-export function validateFields(data: Record<string, any>, rules: ValidationRule[]) {
+export function validateFields(
+    data: Record<string, string | number | boolean | null | undefined>,
+    rules: ValidationRule[]
+): string[] {
     const errors: string[] = [];
 
     for (const rule of rules) {
         const value = data[rule.field];
 
         // Verifica se o campo é obrigatório
-        if (rule.required && !value) {
+        if (rule.required && (value === null || value === undefined || value === "")) {
             errors.push(`${rule.field} é obrigatório.`);
             continue;
         }

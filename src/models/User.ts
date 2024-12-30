@@ -37,7 +37,7 @@ export default class User implements IUser {
     @Column({
         type: "enum",
         enum: UserType,        
-        default: UserType.Common  
+        default: UserType.Functional
     })
     user_type: UserType
 

@@ -1,11 +1,10 @@
 import nodemailer, { Transporter, SendMailOptions } from 'nodemailer';
-
+console.log(process.env.EMAIL, process.env.SENHA_EMAIL)
 const siteUrl = 'URL';
 
 function createTransporter(): Transporter {
     const email = process.env.EMAIL;
     const senhaEmail = process.env.SENHA_EMAIL;
-
     if (!email || !senhaEmail) {
         throw new Error("As variáveis de ambiente EMAIL ou SENHA_EMAIL não estão definidas.");
     }
@@ -14,13 +13,15 @@ function createTransporter(): Transporter {
         service: 'Gmail',
         auth: {
             user: email,
-            pass: senhaEmail
+            pass: senhaEmail,
+            
         }
     });
 }
 
 // Função renomeada para enviar o e-mail de verificação de cadastro
 async function sendAccountVerificationEmail(email: string, token: string): Promise<void> {
+    console.log('Token de verificação:', token);
     const transporter = createTransporter();
     const verificationUrl = `${siteUrl}/auth/verify?token=${token}&email=${email}`;
 
