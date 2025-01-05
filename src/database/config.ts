@@ -9,7 +9,7 @@ const AppDataSource = new DataSource({
   username: process.env.PG_USUARIO,
   password: process.env.PG_SENHA,
   database: process.env.PG_BANCO, 
-  synchronize: false, 
+  synchronize: true, 
   logging: true,
   entities: [`${__dirname}/../models/*.{js,ts}`],
   subscribers: [],
