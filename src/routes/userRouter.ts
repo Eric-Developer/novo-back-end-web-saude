@@ -1,17 +1,23 @@
 import { Router, Request, Response } from "express";
 import userService from "../services/userService";
 import { validateFields } from "../validators/validateFields";
+import cloudinaryService from "../services/cloudinaryService";
+import upload from "../config/uploadConfig";
+import path from "path";
+import fs from 'fs';
 import CustomError from "../utils/CustomError";
+import { UserRequest } from "../types/UserRequest";
+import verifyToken from "../middlewares/AuthenticatedRequest";
 
 const userRouter = Router();
 
 // Route para listar os usuários
-userRouter.get("/search/users", async (req: Request, res: Response) => {
+userRouter.get("/search/users", verifyToken("admin"), async (req: Request, res: Response) => {
     try {
         const users = await userService.fetchAllUsers();
         res.status(200).json(users);
-
     } catch (error) {
+        console.error("Erro ao listar usuários:", error);
         if (error instanceof CustomError) {
             res.status(error.statusCode).json({
                 error: error.message,
@@ -19,23 +25,22 @@ userRouter.get("/search/users", async (req: Request, res: Response) => {
                 details: error.details
             });
         } else {
-            const unknownError = new CustomError("Erro interno do servidor", 500, "INTERNAL_SERVER_ERROR");
-            res.status(unknownError.statusCode).json({
-                error: unknownError.message,
-                code: unknownError.errorCode,
-                details: unknownError.details
+            res.status(500).json({
+                error: error instanceof Error ? error.message : "Erro interno ao listar usuários",
+                stack: error instanceof Error ? error.stack : null,
             });
         }
     }
 });
 
 // Rota para listar um único usuário
-userRouter.get("/search/user/:id", async (req: Request, res: Response) => {
-    const { id } = req.params;
+userRouter.get("/search/user/", verifyToken(), async (req: UserRequest, res: Response) => {
     try {
-        const user = await userService.fetchUserById(Number(id));
+        const user = await userService.fetchUserById(Number(req.userId));
+        if (!user) {
+            throw new CustomError('Usuário não encontrado.', 404, 'USER_NOT_FOUND');
+        }
         res.status(200).json(user);
-
     } catch (error) {
         console.error("Erro ao buscar usuário:", error);
         if (error instanceof CustomError) {
@@ -45,19 +50,17 @@ userRouter.get("/search/user/:id", async (req: Request, res: Response) => {
                 details: error.details
             });
         } else {
-            const notFoundError = new CustomError("Usuário não encontrado", 404, "USER_NOT_FOUND");
-            res.status(notFoundError.statusCode).json({
-                error: notFoundError.message,
-                code: notFoundError.errorCode,
-                details: notFoundError.details
+            res.status(500).json({
+                error: error instanceof Error ? error.message : "Erro ao buscar usuário",
+                stack: error instanceof Error ? error.stack : null,
             });
         }
     }
 });
 
 // Rota para alterar informações do usuário
-userRouter.put("/update/user/:id", async (req: Request, res: Response) => {
-    const { id } = req.params;
+userRouter.put("/update/user/", verifyToken(), async (req: UserRequest, res: Response) => {
+    console.log(req.userId);
     try {
         const updateValidationRules = [
             { field: "name", required: true },
@@ -72,7 +75,7 @@ userRouter.put("/update/user/:id", async (req: Request, res: Response) => {
             return;
         }
 
-        const updatedUser = await userService.modifyUser(Number(id), req.body);
+        const updatedUser = await userService.modifyUser(Number(req.userId), req.body);
         res.status(200).json(updatedUser);
 
     } catch (error) {
@@ -84,72 +87,20 @@ userRouter.put("/update/user/:id", async (req: Request, res: Response) => {
                 details: error.details
             });
         } else {
-            const updateError = new CustomError("Erro ao atualizar usuário", 500, "USER_UPDATE_FAILED");
-            res.status(updateError.statusCode).json({
-                error: updateError.message,
-                code: updateError.errorCode,
-                details: updateError.details
-            });
-        }
-    }
-});
-
-// Rota para alterar a imagem do usuário
-userRouter.patch("/update_image/user/:id", async (req: Request, res: Response) => {
-    const { id } = req.params;
-    try {
-        const imageValidationRules = [
-            { field: "image", required: true },
-        ];
-
-        const errors = validateFields(req.body, imageValidationRules);
-        if (errors.length) {
-            res.status(400).json({ errors });
-            return;
-        }
-
-        const { image } = req.body;
-
-        if (!image) {
-            const imageError = new CustomError("A imagem é obrigatória", 400, "IMAGE_REQUIRED");
-            res.status(imageError.statusCode).json({
-                error: imageError.message,
-                code: imageError.errorCode,
-                details: imageError.details
-            });
-            return;
-        }
-
-        const updatedUser = await userService.updateUserAvatar(Number(id), image);
-        res.status(200).json(updatedUser);
-
-    } catch (error) {
-        console.error("Erro ao atualizar a imagem do usuário:", error);
-        if (error instanceof CustomError) {
-            res.status(error.statusCode).json({
-                error: error.message,
-                code: error.errorCode,
-                details: error.details
-            });
-        } else {
-            const imageUpdateError = new CustomError("Erro ao atualizar a imagem do usuário", 500, "USER_IMAGE_UPDATE_FAILED");
-            res.status(imageUpdateError.statusCode).json({
-                error: imageUpdateError.message,
-                code: imageUpdateError.errorCode,
-                details: imageUpdateError.details
+            res.status(500).json({
+                error: error instanceof Error ? error.message : "Erro interno ao atualizar o usuário",
+                stack: error instanceof Error ? error.stack : null,
             });
         }
     }
 });
 
 // Rota para deletar usuário
-userRouter.delete("/delete/user/:id", async (req: Request, res: Response) => {
-    const { id } = req.params;
+userRouter.delete("/delete/user/", verifyToken(), async (req: UserRequest, res: Response) => {
 
     try {
-        await userService.deleteUser(Number(id));
+        await userService.deleteUser(Number(req.userId));
         res.status(204).send();
-
     } catch (error) {
         console.error("Erro ao deletar usuário:", error);
         if (error instanceof CustomError) {
@@ -159,11 +110,72 @@ userRouter.delete("/delete/user/:id", async (req: Request, res: Response) => {
                 details: error.details
             });
         } else {
-            const deleteError = new CustomError("Erro ao deletar usuário", 500, "USER_DELETE_FAILED");
-            res.status(deleteError.statusCode).json({
-                error: deleteError.message,
-                code: deleteError.errorCode,
-                details: deleteError.details
+            res.status(500).json({
+                error: error instanceof Error ? error.message : "Erro interno ao deletar o usuário",
+                stack: error instanceof Error ? error.stack : null,
+            });
+        }
+    }
+});
+
+// Rota para alterar imagem do usuário
+userRouter.patch("/update/user/image", upload.single("image"), verifyToken(), async (req: UserRequest, res: Response) => {
+
+    try {
+        if (!req.file) {
+            res.status(400).json({ error: 'Arquivo de imagem não encontrado' });
+            return;
+        }
+
+        const filePath = path.resolve(req.file.path);
+        
+        const uploadResult = await cloudinaryService.uploadImage(filePath);
+        const updatedUser = await userService.changeUserImage(Number(req.userId), uploadResult);
+
+        fs.unlink(filePath, (err) => {
+            if (err) {
+                console.error("Erro ao excluir o arquivo local:", err);
+            } else {
+                console.log("Arquivo local excluído com sucesso");
+            }
+        });
+
+        res.status(200).json(updatedUser);
+
+    } catch (error) {
+        console.error("Erro ao atualizar imagem do usuário:", error);
+        if (error instanceof CustomError) {
+            res.status(error.statusCode).json({
+                error: error.message,
+                code: error.errorCode,
+                details: error.details
+            });
+        } else {
+            res.status(500).json({
+                error: error instanceof Error ? error.message : "Erro interno ao atualizar a imagem do usuário",
+                stack: error instanceof Error ? error.stack : null,
+            });
+        }
+    }
+});
+
+// Rota para obter o total de usuários
+userRouter.get("/users/total", async (req: Request, res: Response) => {
+    try {
+        const totalUsers = await userService.getTotalUsers();
+        res.status(200).json({ total: totalUsers });
+    } catch (error) {
+        console.error("Erro ao obter total de usuários:", error);
+        if (error instanceof CustomError) {
+            res.status(error.statusCode).json({
+                error: error.message,
+                code: error.errorCode,
+                details: error.details
+            });
+        } else {
+            res.status(500).json({
+                error: error instanceof Error ? error.message : "Erro interno ao obter o total de usuários",
+                stack: error instanceof Error ? error.stack : null,
             });
         }
     }

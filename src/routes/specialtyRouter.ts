@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import specialtyService from "../services/specialtyService";  // Importando specialtyService
+import specialtyService from "../services/specialtyService";
 import { validateFields } from "../validators/validateFields";
 import CustomError from "../utils/CustomError";
 
@@ -33,7 +33,7 @@ specialtyRouter.post("/specialty", async (req: Request, res: Response) => {
             });
         } else {
             res.status(500).json({
-                error: error instanceof Error ? error.message : "Erro ao criar especialidade",
+                error: error instanceof Error ? error.message : "Erro interno ao criar especialidade",
                 stack: error instanceof Error ? error.stack : null,
             });
         }
@@ -69,7 +69,7 @@ specialtyRouter.put("/specialty/:id", async (req: Request, res: Response) => {
             });
         } else {
             res.status(500).json({
-                error: error instanceof Error ? error.message : "Erro ao atualizar especialidade",
+                error: error instanceof Error ? error.message : "Erro interno ao atualizar especialidade",
                 stack: error instanceof Error ? error.stack : null,
             });
         }
@@ -94,7 +94,7 @@ specialtyRouter.delete("/specialty/:id", async (req: Request, res: Response) => 
             });
         } else {
             res.status(500).json({
-                error: error instanceof Error ? error.message : "Erro ao deletar especialidade",
+                error: error instanceof Error ? error.message : "Erro interno ao deletar especialidade",
                 stack: error instanceof Error ? error.stack : null,
             });
         }
@@ -116,7 +116,7 @@ specialtyRouter.get("/specialties", async (req: Request, res: Response) => {
             });
         } else {
             res.status(500).json({
-                error: error instanceof Error ? error.message : "Erro ao listar especialidades",
+                error: error instanceof Error ? error.message : "Erro interno ao listar especialidades",
                 stack: error instanceof Error ? error.stack : null,
             });
         }
@@ -145,7 +145,7 @@ specialtyRouter.get("/specialty/search", async (req: Request, res: Response) => 
             });
         } else {
             res.status(500).json({
-                error: error instanceof Error ? error.message : "Erro ao buscar especialidades",
+                error: error instanceof Error ? error.message : "Erro interno ao buscar especialidades",
                 stack: error instanceof Error ? error.stack : null,
             });
         }

@@ -27,9 +27,12 @@ class AddressService {
     }
 
     // Deletar um endereço
-    public async deleteAddress(id: number) {
+    public async deleteAddress(id: number, queryRunner?: QueryRunner) {
         const address = await this.addressRepository.findOne({ where: { id } });
         if (!address) throw new Error("Endereço não encontrado");
+        if (queryRunner) {
+            return queryRunner.manager.remove(address);
+        }
         return await this.addressRepository.remove(address);
     }
 }

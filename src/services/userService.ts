@@ -2,6 +2,7 @@ import AppDataSource from "../database/config";
 import User from "../models/User";
 import { Repository } from "typeorm";
 import CustomError from "../utils/CustomError";
+import healthUnitService from "./healthUnitService";
 
 class UserService {
     private userRepository: Repository<User>;
@@ -22,6 +23,7 @@ class UserService {
             }
             return users;
         } catch (error) {
+            if (error instanceof CustomError) throw error;
             throw new CustomError(
                 `Erro ao buscar usuários: ${error instanceof Error ? error.message : String(error)}`,
                 500,
@@ -32,10 +34,11 @@ class UserService {
 
     public async fetchUserById(id: number) {
         try {
-            const user = await this.userRepository.findOne({ where: { id } });
+            const user = await this.userRepository.findOne({ where: { id }, relations: ['healthUnits'] });
             if (!user) throw new CustomError("Usuário não encontrado", 404, "USER_NOT_FOUND");
             return user;
         } catch (error) {
+            if (error instanceof CustomError) throw error;
             throw new CustomError(
                 `Erro ao buscar usuário: ${error instanceof Error ? error.message : String(error)}`,
                 500,
@@ -43,13 +46,14 @@ class UserService {
             );
         }
     }
-
+    
     public async fetchUserByEmail(email: string) {
         try {
             const user = await this.userRepository.findOne({ where: { email } });
             if (!user) throw new CustomError("Usuário não encontrado", 404, "USER_NOT_FOUND");
             return user;
         } catch (error) {
+            if (error instanceof CustomError) throw error;
             throw new CustomError(
                 `Erro ao buscar usuário por email: ${error instanceof Error ? error.message : String(error)}`,
                 500,
@@ -60,11 +64,13 @@ class UserService {
 
     public async modifyUser(id: number, updatedData: Partial<User>) {
         try {
+
             const user = await this.fetchUserById(id);
             Object.assign(user, updatedData);
             const updatedUser = await this.userRepository.save(user);
             return updatedUser;
         } catch (error) {
+            if (error instanceof CustomError) throw error;
             throw new CustomError(
                 `Erro ao atualizar dados do usuário: ${error instanceof Error ? error.message : String(error)}`,
                 500,
@@ -73,32 +79,69 @@ class UserService {
         }
     }
 
-    public async updateUserAvatar(id: number, image: string) {
+    public async deleteUser(id: number) {
+        const queryRunner = AppDataSource.createQueryRunner();
+        await queryRunner.startTransaction();
+    
+        try {
+            // Garantir que o usuário existe antes de prosseguir
+            const user = await this.fetchUserById(id);
+            if (!user) {
+                throw new CustomError("Usuário não encontrado.", 404, "USER_NOT_FOUND");
+            }
+    
+            // Excluir todas as unidades de saúde associadas ao usuário
+            await healthUnitService.deleteAllHealthUnitsByUser(id, queryRunner);
+    
+            // Excluir o usuário
+            await queryRunner.manager.remove(user);
+    
+            // Confirmar transação
+            await queryRunner.commitTransaction();
+    
+            return { message: "Usuário e todas as unidades de saúde associadas foram excluídos com sucesso." };
+        } catch (error) {
+            // Reverter transação em caso de erro
+            await queryRunner.rollbackTransaction();
+    
+            if (error instanceof CustomError) throw error;
+            throw new CustomError(
+                `Erro ao deletar usuário e suas unidades de saúde associadas: ${error instanceof Error ? error.message : String(error)}`,
+                500,
+                "USER_DELETION_FAILED"
+            );
+        } finally {
+            await queryRunner.release();
+        }
+    }
+    
+    public async changeUserImage(id: number, newImage: string) {
         try {
             const user = await this.fetchUserById(id);
-            user.image = image;
+            user.image = newImage;
             const updatedUser = await this.userRepository.save(user);
             return updatedUser;
         } catch (error) {
+            if (error instanceof CustomError) throw error;
             throw new CustomError(
-                `Erro ao atualizar imagem do usuário: ${error instanceof Error ? error.message : String(error)}`,
+                `Erro ao alterar imagem do usuário: ${error instanceof Error ? error.message : String(error)}`,
                 500,
-                'USER_AVATAR_UPDATE_FAILED'
+                'USER_IMAGE_CHANGE_FAILED'
             );
         }
     }
 
-    public async deleteUser(id: number) {
+    public async getTotalUsers() {
         try {
-            const user = await this.fetchUserById(id); 
-            await this.userRepository.remove(user); 
-            return { message: "Usuário deletado com sucesso" };
+            const count = await this.userRepository.count();
+            return { totalUsers: count };
         } catch (error) {
+            if (error instanceof CustomError) throw error;
             throw new CustomError(
-                `Erro ao deletar usuário: ${error instanceof Error ? error.message : String(error)}`,
+                `Erro ao obter o total de usuários: ${error instanceof Error ? error.message : String(error)}`,
                 500,
-                'USER_DELETION_FAILED'
-            ); 
+                'USER_COUNT_FAILED'
+            );
         }
     }
 }

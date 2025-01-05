@@ -1,5 +1,6 @@
 import nodemailer, { Transporter, SendMailOptions } from 'nodemailer';
-console.log(process.env.EMAIL, process.env.SENHA_EMAIL)
+import { generateWebSaudeEmailHtml } from './layoutEmail';
+
 const siteUrl = 'URL';
 
 function createTransporter(): Transporter {
@@ -38,7 +39,7 @@ async function sendAccountVerificationEmail(email: string, token: string): Promi
         from: `Web Saúde <${process.env.EMAIL}>`,
         to: email,
         subject: 'Verificação de E-mail',
-        text: emailContent
+        html: generateWebSaudeEmailHtml(emailContent)
     };
 
     try {
@@ -68,7 +69,7 @@ async function sendPasswordRecoveryEmail(email: string, resetToken: string): Pro
         from: `Web Saúde <${process.env.EMAIL}>`,
         to: email,
         subject: 'Recuperação de Senha',
-        text: emailContent
+        html: generateWebSaudeEmailHtml(emailContent)
     };
 
     try {
@@ -98,7 +99,7 @@ async function sendFinalizationEmail(email: string, token: string): Promise<void
         from: `Web Saúde <${process.env.EMAIL}>`,
         to: email,
         subject: 'Finalização de Cadastro',
-        text: emailContent
+        html: generateWebSaudeEmailHtml(emailContent)
     };
 
     try {

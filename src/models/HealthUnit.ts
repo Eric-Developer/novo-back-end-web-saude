@@ -1,5 +1,6 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn, ManyToOne, JoinColumn,
- ManyToMany, JoinTable } from "typeorm";
+ ManyToMany, JoinTable, 
+ OneToOne} from "typeorm";
 import User from "./User";
 import Address from "./Address";
 import Specialty from "./Specialty";
@@ -38,7 +39,7 @@ export default class HealthUnit implements IHealthUnit {
     @Column({ type: 'text', nullable: true })
     image: string;
 
-    @Column({ unique: true })
+    @Column()
     email: string;
 
     @Column({
@@ -72,14 +73,14 @@ export default class HealthUnit implements IHealthUnit {
     @Column()
     address_id: number;
 
-    @ManyToOne(() => User)
+    @ManyToOne(() => User, {onDelete: "CASCADE"})
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @ManyToOne(() => Address)
+    @OneToOne(() => Address, {cascade: true, onDelete: "CASCADE" })
     @JoinColumn({ name: 'address_id' })
     address: Address;
-    
+
     @ManyToMany(() => Specialty)
     @JoinTable() 
     specialties: Specialty[];

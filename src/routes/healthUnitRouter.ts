@@ -12,10 +12,8 @@ import fs from 'fs';
 const healthUnitRouter = Router();
 
 // Criar uma nova unidade de saúde
-healthUnitRouter.post("/health-unit",upload.single("image"), verifyToken(["admin", "functional"]), async (req: UserRequest, res: Response) => {
+healthUnitRouter.post("/health-unit", upload.single("image"), verifyToken(["admin", "functional"]), async (req: UserRequest, res: Response) => {
     const { healthUnitData, addressData, specialtyIds} = req.body;
-    console.log("Endereço criado:", addressData);
-
     try {
         const createValidationRules = [
             { field: "name", required: true },
@@ -31,7 +29,6 @@ healthUnitRouter.post("/health-unit",upload.single("image"), verifyToken(["admin
         const filePath = path.resolve(req.file.path)
 
         const uploadResult = await cloudinaryService.uploadImage(filePath)
-         console.log(uploadResult)
         if (errors.length) {
             res.status(400).json({ errors });
             return;
@@ -43,6 +40,7 @@ healthUnitRouter.post("/health-unit",upload.single("image"), verifyToken(["admin
             res.status(409).json({ Message: "Já existe uma unidade de saúde com este nome." });
             return;
         }
+
         fs.unlink(filePath, (err) => {
             if (err) {
                 console.error("Erro ao excluir o arquivo local:", err)
@@ -50,6 +48,7 @@ healthUnitRouter.post("/health-unit",upload.single("image"), verifyToken(["admin
                 console.log("Arquivo local excluído com sucesso")
             }
         })
+        
         res.status(201).json(newHealthUnit);
     } catch (error) {
         console.error("Erro ao criar unidade de saúde:", error);
@@ -69,24 +68,25 @@ healthUnitRouter.post("/health-unit",upload.single("image"), verifyToken(["admin
 });
 
 // Atualizar uma unidade de saúde
-healthUnitRouter.put("/health-unit/:id", verifyToken(["admin", "functional"]), async (req: UserRequest, res: Response) => {
+healthUnitRouter.put("/health-unit/:id",upload.single("image"), verifyToken(["admin", "functional"]), async (req: UserRequest, res: Response) => {
     const { id } = req.params;
     const { healthUnitData, addressData} = req.body;
-
     try {
-        const updateValidationRules = [
-            { field: "name", required: false },
-        ];
+        
+        let imageUrl: string | null = null; // Inicializa como null
 
-        const errors = validateFields(healthUnitData, updateValidationRules);
+        if (req.file?.path) {
+            const filePath = path.resolve(req.file.path);
+            const uploadResult = await cloudinaryService.uploadImage(filePath);
+            imageUrl = uploadResult
 
-        if (errors.length) {
-            res.status(400).json({ errors });
-            return;
         }
+        console.log("iamge",imageUrl)
 
         const updatedHealthUnit = await healthUnitService.updateHealthUnit(Number(req.userId),
-        String(req.userType), Number(id), healthUnitData, addressData);
+        String(req.userType), Number(id), healthUnitData, addressData, imageUrl !== null && imageUrl !== undefined ? imageUrl : undefined
+    );
+
         if (updatedHealthUnit === null) {
             res.status(404).json({ Message: "Unidade de saúde não encontrada!" });
             return;
@@ -102,7 +102,7 @@ healthUnitRouter.put("/health-unit/:id", verifyToken(["admin", "functional"]), a
             });
         } else {
             res.status(500).json({
-                error: error instanceof Error ? error.message : "Erro ao atualizar unidade de saúde",
+                error: error instanceof Error ? error.message : "Erro interno ao atualizar unidade de saúde",
                 stack: error instanceof Error ? error.stack : null,
             });
         }
@@ -153,7 +153,7 @@ healthUnitRouter.get("/health-units",verifyToken(""), async (req: UserRequest, r
             });
         } else {
             res.status(500).json({
-                error: error instanceof Error ? error.message : "Erro ao listar unidades de saúde",
+                error: error instanceof Error ? error.message : "Erro interno ao listar unidades de saúde",
                 stack: error instanceof Error ? error.stack : null,
             });
         }
@@ -183,7 +183,7 @@ healthUnitRouter.get("/health-units/search", async (req: Request, res: Response)
             });
         } else {
             res.status(500).json({
-                error: error instanceof Error ? error.message : "Erro ao buscar unidades de saúde",
+                error: error instanceof Error ? error.message : "Erro interno ao buscar unidades de saúde",
                 stack: error instanceof Error ? error.stack : null,
             });
         }
@@ -205,7 +205,7 @@ healthUnitRouter.get("/health-units/approved", async (req: Request, res: Respons
             });
         } else {
             res.status(500).json({
-                error: error instanceof Error ? error.message : "Erro ao listar unidades de saúde aprovadas",
+                error: error instanceof Error ? error.message : "Erro interno ao listar unidades de saúde aprovadas",
                 stack: error instanceof Error ? error.stack : null,
             });
         }
@@ -227,7 +227,7 @@ healthUnitRouter.get("/health-units/unapproved",verifyToken("admin"), async (req
             });
         } else {
             res.status(500).json({
-                error: error instanceof Error ? error.message : "Erro ao listar unidades de saúde não aprovadas",
+                error: error instanceof Error ? error.message : "Erro interno ao listar unidades de saúde não aprovadas",
                 stack: error instanceof Error ? error.stack : null,
             });
         }
@@ -249,7 +249,7 @@ healthUnitRouter.get("/health-units/count",verifyToken("admin"), async (req: Req
             });
         } else {
             res.status(500).json({
-                error: error instanceof Error ? error.message : "Erro ao contar unidades de saúde",
+                error: error instanceof Error ? error.message : "Erro interno ao obter o total de unidades de saúde",
                 stack: error instanceof Error ? error.stack : null,
             });
         }
@@ -273,7 +273,7 @@ healthUnitRouter.get("/health-units/user/:userId",verifyToken("functional"), asy
             });
         } else {
             res.status(500).json({
-                error: error instanceof Error ? error.message : "Erro ao listar unidades de saúde do usuário",
+                error: error instanceof Error ? error.message : "Erro interno ao listar unidades de saúde do usuário",
                 stack: error instanceof Error ? error.stack : null,
             });
         }
@@ -302,7 +302,7 @@ healthUnitRouter.get("/health-units/filter", async (req: Request, res: Response)
             });
         } else {
             res.status(500).json({
-                error: error instanceof Error ? error.message : "Erro ao filtrar unidades de saúde",
+                error: error instanceof Error ? error.message : "Erro interno ao filtrar unidades de saúde",
                 stack: error instanceof Error ? error.stack : null,
             });
         }
@@ -331,7 +331,7 @@ healthUnitRouter.get("/health-unit/:name", async (req: Request, res: Response) =
             });
         } else {
             res.status(500).json({
-                error: error instanceof Error ? error.message : "Erro ao buscar unidade de saúde pelo nome",
+                error: error instanceof Error ? error.message : "Erro interno ao buscar unidade de saúde pelo nome",
                 stack: error instanceof Error ? error.stack : null,
             });
         }
@@ -360,7 +360,43 @@ healthUnitRouter.get("/health-units/specialty/:specialtyName", async (req: Reque
             });
         } else {
             res.status(500).json({
-                error: error instanceof Error ? error.message : "Erro ao buscar unidades de saúde pela especialidade",
+                error: error instanceof Error ? error.message : "Erro interno ao buscar unidades de saúde pela especialidade",
+                stack: error instanceof Error ? error.stack : null,
+            });
+        }
+    }
+});
+
+// Remover especialidades de uma unidade de saúde
+healthUnitRouter.delete("/health-unit/:id/specialties", verifyToken(["admin", "functional"]), async (req: UserRequest, res: Response) => {
+    const { id } = req.params;
+    const { specialtyIds } = req.body;
+
+    if (!Array.isArray(specialtyIds) || specialtyIds.length === 0) {
+        res.status(400).json({ error: "A lista de IDs de especialidades é obrigatória e deve conter pelo menos um ID." });
+        return;
+    }
+
+    try {
+        const removedSpecialties = await healthUnitService.removeSpecialtiesFromHealthUnit(Number(id), specialtyIds);
+
+        if (!removedSpecialties) {
+            res.status(404).json({ message: "Unidade de saúde não encontrada ou nenhuma especialidade removida." });
+            return;
+        }
+
+        res.status(200).json(removedSpecialties );
+    } catch (error) {
+        console.error("Erro ao remover especialidades da unidade de saúde:", error);
+        if (error instanceof CustomError) {
+            res.status(error.statusCode).json({
+                error: error.message,
+                code: error.errorCode,
+                details: error.details
+            });
+        } else {
+            res.status(500).json({
+                error: error instanceof Error ? error.message : "Erro interno ao remover especialidades.",
                 stack: error instanceof Error ? error.stack : null,
             });
         }

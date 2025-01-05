@@ -1,11 +1,17 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+
+export enum PendingUserStatus {
+    PENDING = 'pending',
+    VERIFIED = 'verified',
+}
 
 interface IPendingUser {
-    id: number
-    name: string
-    email: string
-    password: string
-    phone: string
+    id: number;
+    name: string;
+    email: string;
+    password: string;
+    phone: string;
+    status: PendingUserStatus;
 }
 
 @Entity('PendingUser')
@@ -14,20 +20,23 @@ export default class PendingUser implements IPendingUser {
     id: number;
 
     @Column()
-    name: string
-    
+    name: string;
+
     @Column({ unique: true })
-    email: string
-    
+    email: string;
+
     @Column()
-    password: string
-    
+    password: string;
+
     @Column()
-    phone: string
+    phone: string;
+
+    @Column({ type: 'enum', enum: PendingUserStatus, default: PendingUserStatus.PENDING })
+    status: PendingUserStatus;
 
     @CreateDateColumn()
-    created_at: Date
+    created_at: Date;
 
     @UpdateDateColumn()
-    updated_at: Date
+    updated_at: Date;
 }

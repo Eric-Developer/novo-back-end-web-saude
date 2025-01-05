@@ -1,6 +1,6 @@
 import CustomError from "../utils/CustomError"; 
 import AppDataSource from "../database/config";
-import PendingUser from "../models/PendingUser";
+import PendingUser, { PendingUserStatus } from "../models/PendingUser";
 import User from "../models/User";
 import { Repository } from "typeorm";
 import bcrypt from 'bcrypt';
@@ -23,13 +23,34 @@ class AuthService {
 
     public async register(name: string, email: string, password: string, phone: string): Promise<PendingUser | null> {
         try {
-            const emailExists = await this.pendingUserRepository.findOne({ where: { email } });
+            const emailExists = await this.userRepository.findOne({ where: { email } });
             if (emailExists) {
                 throw new CustomError("Usuário com este email já existe", 400, "USER_EXISTS");
             }
- 
-            const hashedPassword = await this.hashPassword(password);
 
+            const existingPendingUser = await this.pendingUserRepository.findOne({ where: { email } });
+            if (existingPendingUser) {
+                if (existingPendingUser.status === 'pending') {
+                    existingPendingUser.name = name;
+                    existingPendingUser.phone = phone;
+                    existingPendingUser.password = await this.hashPassword(password);
+                    await this.pendingUserRepository.save(existingPendingUser);
+
+                    const secretKey = process.env.SECRET_KEY;
+                    if (!secretKey) {
+                        throw new CustomError("SECRET_KEY não está definido nas variáveis de ambiente", 500, "MISSING_SECRET_KEY");
+                    }
+
+                    const token = jwt.sign({ id: existingPendingUser.id }, secretKey, { expiresIn: '1h' });
+                    sendAccountVerificationEmail(email, token);
+
+                    return existingPendingUser;
+                } else {
+                    throw new CustomError("Usuário já verificado", 400, "USER_ALREADY_VERIFIED");
+                }
+            }
+
+            const hashedPassword = await this.hashPassword(password);
             const pendingUser = this.pendingUserRepository.create({
                 name,
                 email,
@@ -50,14 +71,14 @@ class AuthService {
             return pendingUser;
         } catch (error) {
             if (error instanceof CustomError) {
-                throw error; 
+                throw error;
             }
             throw new CustomError("Erro ao registrar usuário", 500, "REGISTRATION_ERROR", error);
         }
     }
 
     public async verifyEmailToken(email: string, token: string): Promise<User | null> {
-        const pendingUser = await this.pendingUserRepository.findOne({ where: { email } });
+        const pendingUser = await this.pendingUserRepository.findOne({ where: { email, status: PendingUserStatus.PENDING } });
         if (!pendingUser) {
             throw new CustomError("Usuário não encontrado ou já verificado", 404, "USER_NOT_FOUND");
         }
@@ -72,6 +93,8 @@ class AuthService {
             if (decodedToken.id !== pendingUser.id) {
                 throw new CustomError("Token inválido para o usuário fornecido.", 400, "INVALID_TOKEN");
             }
+            pendingUser.status = PendingUserStatus.VERIFIED;
+            await this.pendingUserRepository.save(pendingUser);
 
             const newUser = this.userRepository.create({
                 name: pendingUser.name,
@@ -89,8 +112,10 @@ class AuthService {
                 throw new CustomError("Token expirado", 400, "EXPIRED_TOKEN");
             } else if (error instanceof jwt.JsonWebTokenError) {
                 throw new CustomError("Token inválido", 400, "INVALID_TOKEN");
+            } else if (error instanceof CustomError) {
+                throw error;
             }
-            
+
             throw new CustomError("Erro ao verificar o email", 500, "VERIFY_EMAIL_ERROR", error);
         }
     }
@@ -145,7 +170,7 @@ class AuthService {
         }
         try {
             const decodedToken = jwt.verify(token, secretKey) as { email: string };
-            
+
             const user = await this.userRepository.findOne({
                 where: { email: decodedToken.email },
             });
@@ -163,6 +188,8 @@ class AuthService {
                 throw new CustomError("Token expirado", 400, "EXPIRED_TOKEN");
             } else if (error instanceof jwt.JsonWebTokenError) {
                 throw new CustomError("Token inválido", 400, "INVALID_TOKEN");
+            } else if (error instanceof CustomError) {
+                throw error;
             }
             throw new CustomError("Erro ao verificar o email", 500, "RESET_PASSWORD_ERROR", error);
         }

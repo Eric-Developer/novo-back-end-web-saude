@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn, OneToMany } from "typeorm"
+import HealthUnit from "./HealthUnit";
 
 enum UserType {
     Common = "common",  
@@ -37,7 +38,7 @@ export default class User implements IUser {
     @Column({
         type: "enum",
         enum: UserType,        
-        default: UserType.Functional
+        default: UserType.Admin
     })
     user_type: UserType
 
@@ -45,7 +46,10 @@ export default class User implements IUser {
     image: string
 
     @Column({ default: true })
-    is_active: boolean 
+    is_active: boolean
+
+    @OneToMany(() => HealthUnit, (healthUnit) => healthUnit.user, { cascade: true })
+    healthUnits: HealthUnit[];
 
     @CreateDateColumn()
     created_at: Date

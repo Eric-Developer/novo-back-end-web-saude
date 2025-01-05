@@ -5,6 +5,7 @@ import CustomError from "../utils/CustomError";
 
 const authRouter = Router();
 
+// Rota para registrar um novo usuário
 authRouter.post("/register", async (req: Request, res: Response) => {
     const { name, email, password, phone } = req.body;
 
@@ -46,6 +47,7 @@ authRouter.post("/register", async (req: Request, res: Response) => {
     }
 });
 
+// Rota para verificar a autenticidade do usuário através do token de email
 authRouter.post('/verify', async (req: Request, res: Response) => {
     const { token, email } = req.body;
 
@@ -72,6 +74,7 @@ authRouter.post('/verify', async (req: Request, res: Response) => {
     }
 });
 
+// Rota para login do usuário
 authRouter.post('/login', async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
@@ -114,6 +117,7 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     }
 });
 
+// Rota para envio de email de recuperação de senha
 authRouter.post('/forgot-password', async (req: Request, res: Response) => {
     const { email } = req.body;
 
@@ -141,6 +145,7 @@ authRouter.post('/forgot-password', async (req: Request, res: Response) => {
     }
 });
 
+// Rota para redefinir a senha do usuário
 authRouter.post('/reset-password', async (req: Request, res: Response) => {
     const { token, newPassword } = req.body;
 
