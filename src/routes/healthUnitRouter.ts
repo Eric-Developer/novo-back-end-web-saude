@@ -73,7 +73,7 @@ healthUnitRouter.put("/health-unit/:id",upload.single("image"), verifyToken(["ad
     const { healthUnitData, addressData} = req.body;
     try {
         
-        let imageUrl: string | null = null; // Inicializa como null
+        let imageUrl: string | null = null; 
 
         if (req.file?.path) {
             const filePath = path.resolve(req.file.path);

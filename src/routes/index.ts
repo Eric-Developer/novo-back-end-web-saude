@@ -7,6 +7,5 @@ import operatingHoursRouter from "./operatingHoursRouter";
 
 const router = Router()
 
-
 router.use("/",authRouter,userRouter,healthUnitRouter,specialtyRouter,operatingHoursRouter)
 export default router
