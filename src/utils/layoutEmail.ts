@@ -1,5 +1,5 @@
 function generateWebSaudeEmailHtml(content: string): string {
-    return `
+  return `
   <!DOCTYPE html>
 <html lang="pt-br">
 <head>

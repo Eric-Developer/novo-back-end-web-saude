@@ -1,12 +1,12 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToMany } from 'typeorm';
 import HealthUnit from './HealthUnit';
-interface ISpecialty {
+interface IExam {
   id: number;
   name: string;
 }
 
-@Entity('Specialties')
-export default class Specialty implements ISpecialty {
+@Entity('Exams')
+export default class Exam implements IExam {
   @PrimaryGeneratedColumn('increment')
   id: number;
 

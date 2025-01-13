@@ -1,41 +1,47 @@
-import {Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn} from "typeorm";
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 interface IAddress {
-    id: number;
-    zip_code: string;
-    state: string;
-    city: string;
-    neighborhood: string;
-    street: string;
-    number: string;
+  id: number;
+  zip_code: string;
+  state: string;
+  city: string;
+  neighborhood: string;
+  street: string;
+  number: string;
 }
 
 @Entity('Address')
 export default class Address implements IAddress {
-    @PrimaryGeneratedColumn('increment')
-    id: number;
+  @PrimaryGeneratedColumn('increment')
+  id: number;
 
-    @Column()
-    zip_code: string;
+  @Column()
+  zip_code: string;
 
-    @Column()
-    state: string;
+  @Column()
+  state: string;
 
-    @Column()
-    city: string;
+  @Column()
+  city: string;
 
-    @Column()
-    neighborhood: string;
+  @Column()
+  neighborhood: string;
 
-    @Column()
-    street: string;
+  @Column()
+  street: string;
 
-    @Column()
-    number: string;
+  @Column()
+  number: string;
 
-    @CreateDateColumn()
-    created_at: Date;
-    
-    @UpdateDateColumn()
-    updated_at: Date;
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
 }
