@@ -263,18 +263,21 @@ class HealthUnitService {
       .leftJoinAndSelect('health_unit.address', 'address')
       .where('health_unit.name ILIKE :searchTerm AND health_unit.approved = true', { searchTerm: `%${searchTerm}%` })
       .orWhere('specialty.name ILIKE :searchTerm AND health_unit.approved = true', { searchTerm: `%${searchTerm}%` })
-      .skip((Number(page) - 1) * limit) 
-      .take(limit);  
+      .skip((Number(page) - 1) * limit)
+      .take(limit);
   
     const [result, total] = await queryBuilder.getManyAndCount();
   
+    const totalPages = Math.ceil(total / limit);
+  
     return {
       data: result,
-      total,
+      totalPages, 
       page,
       limit,
     };
   }
+  
   
   public async getHealthUnitsByUserId(userId: number) {
     return await this.healthUnitRepository.find({
@@ -299,7 +302,9 @@ class HealthUnitService {
     return await this.paginationService.findWithPagination(
       { type: validType, approved: true },
       page,
-      limit
+      limit,
+      ['specialties', 'address'] 
+
     );
   }
 
@@ -359,17 +364,20 @@ class HealthUnitService {
       .where('health_unit.approved = true')
       .andWhere('specialty.id = :specialtyId', { specialtyId: specialty.id })  
       .skip((Number(page) - 1) * limit)  
-      .take(limit)
+      .take(limit);
   
     const [result, total] = await queryBuilder.getManyAndCount();
-
+  
+    const totalPages = Math.ceil(total / limit);
+  
     return {
       data: result,
-      total,
+      totalPages, 
       page,
       limit,
     };
   }
+  
   
   
   public async deleteAllHealthUnitsByUser(

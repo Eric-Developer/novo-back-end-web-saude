@@ -8,11 +8,11 @@ export class PaginationService<T extends ObjectLiteral> {
   constructor(private repository: Repository<T>) {}
 
   async findWithPagination(
-    filters: Filters<T>, 
+    filters: Filters<T>,
     page: number = 1,
-    limit: number = 10,
+    limit: number = 4,
     relations: string[] = []
-  ): Promise<{ data: T[]; total: number; page: number; limit: number }> {
+  ): Promise<{ data: T[]; totalPages: number; page: number; limit: number }> {
     const queryBuilder: SelectQueryBuilder<T> = this.repository.createQueryBuilder("entity");
 
     Object.keys(filters).forEach((key) => {
@@ -37,9 +37,11 @@ export class PaginationService<T extends ObjectLiteral> {
       .take(limit)
       .getManyAndCount();
 
+    const totalPages = Math.ceil(total / limit);
+
     return {
       data,
-      total,
+      totalPages, 
       page,
       limit,
     };
