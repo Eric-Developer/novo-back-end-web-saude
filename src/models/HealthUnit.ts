@@ -11,6 +11,7 @@ import {
   JoinTable,
   OneToOne,
 } from 'typeorm';
+
 import User from './User';
 import Address from './Address';
 import Specialty from './Specialty';

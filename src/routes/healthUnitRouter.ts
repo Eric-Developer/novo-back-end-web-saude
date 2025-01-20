@@ -200,12 +200,13 @@ healthUnitRouter.get(
   }
 );
 
-// Buscar unidades de saúde por nome (com 3 ou mais letras)
 healthUnitRouter.get(
-  '/health-units/search',
-  async (req: Request, res: Response) => {
+  '/health-units/search',verifyToken("", true), 
+  async (req: UserRequest, res: Response) => {
     const { searchTerm } = req.query;
     const page = parseInt(req.query.page as string, 10)
+    const isAdmin = req.userType === 'admin';
+    const showAll = !!req.userId && isAdmin;       
 
     if (typeof searchTerm !== 'string' || searchTerm.length < 3) {
       console.log(searchTerm);
@@ -217,7 +218,7 @@ healthUnitRouter.get(
 
     try {
       const healthUnits =
-        await healthUnitService.searchHealthUnitsByName(searchTerm, page);
+        await healthUnitService.searchHealthUnitsByName(searchTerm, page,{}, 4, showAll);
       res.status(200).json(healthUnits);
     } catch (error) {
       console.error('Erro ao buscar unidades de saúde:', error);
@@ -243,27 +244,24 @@ healthUnitRouter.get(
 // Listar unidades de saúde aprovadas
 healthUnitRouter.get(
   '/health-units',
-  verifyToken("", true), // Token opcional
+  verifyToken("", true), 
   async (req: UserRequest, res: Response) => {
     try {
       const page = parseInt(req.query.page as string, 10) || 1;
       const limit = parseInt(req.query.limit as string, 10) || 4;
 
-      // Verifica se o usuário está autenticado e é admin
       const isAdmin = req.userType === 'admin';
-      const showAll = !!req.userId && isAdmin; // Só mostra todas as unidades se for admin
-
-      // Busca unidades de saúde com base na autenticação e tipo de usuário
+      const showAll = !!req.userId && isAdmin
       const healthUnits = await healthUnitService.getApprovedHealthUnits(
         page,
-        {}, // Filtros opcionais fornecidos via query params
+        {}, 
         limit,
-        showAll // Se admin, exibe todas as unidades
+        showAll 
       );
 
       res.status(200).json(healthUnits);
     } catch (error) {
-      console.error(error); // Para debugging
+      console.error(error);
       res.status(500).json({ message: 'Erro ao buscar unidades de saúde', error });
     }
   }
@@ -363,10 +361,12 @@ healthUnitRouter.get(
 
 // Filtrar unidades de saúde por tipo
 healthUnitRouter.get(
-  '/health-units/filter',
-  async (req: Request, res: Response) => {
+  '/health-units/filter', verifyToken("",true),
+  async (req: UserRequest, res: Response) => {
     const { type } = req.query;
     const page = parseInt(req.query.page as string, 10)
+    const isAdmin = req.userType === 'admin';
+    const showAll = !!req.userId && isAdmin;
     if (typeof type !== 'string') {
       res
         .status(400)
@@ -376,7 +376,7 @@ healthUnitRouter.get(
 
     try {
       const filteredHealthUnits =
-        await healthUnitService.filterHealthUnitsByType(type,page);
+        await healthUnitService.filterHealthUnitsByType(type,page,4,showAll);
       res.status(200).json(filteredHealthUnits);
     } catch (error) {
       console.error('Erro ao filtrar unidades de saúde:', error);
@@ -402,8 +402,12 @@ healthUnitRouter.get(
 // Buscar unidade de saúde pelo nome completo
 healthUnitRouter.get(
   '/health-unit/:name',
-  async (req: Request, res: Response) => {
+  verifyToken('', true),
+  async (req: UserRequest, res: Response) => {
     const { name } = req.params;
+    const { userId, userType } = req;
+    const isAdmin = userType === 'admin';
+    const showAll = !!userId && isAdmin;
 
     if (typeof name !== 'string') {
       res.status(404).json({ error: 'Unidade de saúde não encontrada.' });
@@ -411,7 +415,12 @@ healthUnitRouter.get(
     }
 
     try {
-      const healthUnit = await healthUnitService.getHealthUnitByName(name);
+      const healthUnit = await healthUnitService.getHealthUnitByName(
+        name,
+        showAll,
+        userId,
+        userType
+      );
       res.status(200).json(healthUnit);
     } catch (error) {
       console.error('Erro ao buscar unidade de saúde pelo nome:', error);
@@ -436,10 +445,12 @@ healthUnitRouter.get(
 
 // Buscar unidades de saúde por especialidade
 healthUnitRouter.get(
-  '/health-units/specialty/:specialtyName',
-  async (req: Request, res: Response) => {
+  '/health-units/specialty/:specialtyName', verifyToken("",true),
+  async (req: UserRequest, res: Response) => {
     const { specialtyName } = req.params;
     const page = parseInt(req.query.page as string, 10)
+    const isAdmin = req.userType === 'admin';
+    const showAll = !!req.userId && isAdmin;   
     if (typeof specialtyName !== 'string' || !specialtyName.trim()) {
       res.status(400).json({ error: 'O nome da especialidade é obrigatório.' });
       return;
@@ -447,7 +458,7 @@ healthUnitRouter.get(
 
     try {
       const healthUnits =
-        await healthUnitService.getHealthUnitsBySpecialty(specialtyName,page);
+        await healthUnitService.getHealthUnitsBySpecialty(specialtyName,page,4,showAll);
       res.status(200).json(healthUnits);
     } catch (error) {
       console.error(
