@@ -10,13 +10,22 @@ class OperatingHoursService {
     this.operatingHoursRepository = AppDataSource.getRepository(OperatingHours);
   }
 
-  public async create(data: Partial<OperatingHours>): Promise<OperatingHours> {
-    await this.validateOperatingHoursConflict(data);
-
-    const newOperatingHours = this.operatingHoursRepository.create(data);
-    return await this.operatingHoursRepository.save(newOperatingHours);
+  public async create(data: Partial<OperatingHours>[]): Promise<OperatingHours[]> {
+    const createdOperatingHours: OperatingHours[] = [];
+  
+    for (const item of data) {
+      // Valida cada horário de funcionamento
+      await this.validateOperatingHoursConflict(item);
+  
+      // Cria e salva cada horário de funcionamento individualmente
+      const newOperatingHours = this.operatingHoursRepository.create(item);
+      const savedOperatingHours = await this.operatingHoursRepository.save(newOperatingHours);
+      createdOperatingHours.push(savedOperatingHours);
+    }
+  
+    return createdOperatingHours;
   }
-
+  
   public async getAll(): Promise<OperatingHours[]> {
     return await this.operatingHoursRepository.find({
       relations: ['health_unit'],

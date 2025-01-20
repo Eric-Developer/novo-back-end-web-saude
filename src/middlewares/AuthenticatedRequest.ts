@@ -7,7 +7,10 @@ interface AuthenticatedRequest extends Request {
   userType?: string;
 }
 
-export default function verifyToken(requiredType?: string | string[]) {
+export default function verifyToken(
+  requiredType?: string | string[],
+  isOptional: boolean = false // Novo parâmetro para definir se o token é opcional
+) {
   return async (
     req: AuthenticatedRequest,
     res: Response,
@@ -16,6 +19,10 @@ export default function verifyToken(requiredType?: string | string[]) {
     const token = req.headers['token'] as string;
 
     if (!token) {
+      if (isOptional) {
+        // Se o token for opcional, continua o fluxo sem erro
+        return next();
+      }
       return next(
         new CustomError('Token não fornecido.', 401, 'TOKEN_NOT_PROVIDED')
       );
@@ -32,7 +39,6 @@ export default function verifyToken(requiredType?: string | string[]) {
       // Verificando o tipo do usuário
       if (requiredType) {
         if (Array.isArray(requiredType)) {
-          // Se requiredType for um array, verifica se o tipo de usuário está no array
           if (!requiredType.includes(decoded.type)) {
             return next(
               new CustomError(
@@ -43,7 +49,6 @@ export default function verifyToken(requiredType?: string | string[]) {
             );
           }
         } else {
-          // Se requiredType for uma string, compara diretamente
           if (decoded.type !== requiredType) {
             return next(
               new CustomError(
@@ -58,6 +63,10 @@ export default function verifyToken(requiredType?: string | string[]) {
 
       next();
     } catch (error) {
+      if (isOptional) {
+        // Se o token for opcional, ignora o erro e continua
+        return next();
+      }
       return next(handleTokenError(error));
     }
   };

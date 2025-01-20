@@ -173,7 +173,7 @@ healthUnitRouter.delete(
 
 // Listar todas as unidades de saúde
 healthUnitRouter.get(
-  '/health-units',
+  '/health-unitss',
   verifyToken(''),
   async (req: UserRequest, res: Response) => {
     try {
@@ -242,30 +242,29 @@ healthUnitRouter.get(
 
 // Listar unidades de saúde aprovadas
 healthUnitRouter.get(
-  '/health-units/approved',
-  async (req: Request, res: Response) => {
+  '/health-units',
+  verifyToken("", true), // Token opcional
+  async (req: UserRequest, res: Response) => {
     try {
-      const page = parseInt(req.query.page as string, 10)
-      const approvedHealthUnits =
-        await healthUnitService.getApprovedHealthUnits(page);
-      res.status(200).json(approvedHealthUnits);
+      const page = parseInt(req.query.page as string, 10) || 1;
+      const limit = parseInt(req.query.limit as string, 10) || 4;
+
+      // Verifica se o usuário está autenticado e é admin
+      const isAdmin = req.userType === 'admin';
+      const showAll = !!req.userId && isAdmin; // Só mostra todas as unidades se for admin
+
+      // Busca unidades de saúde com base na autenticação e tipo de usuário
+      const healthUnits = await healthUnitService.getApprovedHealthUnits(
+        page,
+        {}, // Filtros opcionais fornecidos via query params
+        limit,
+        showAll // Se admin, exibe todas as unidades
+      );
+
+      res.status(200).json(healthUnits);
     } catch (error) {
-      console.error('Erro ao listar unidades de saúde aprovadas:', error);
-      if (error instanceof CustomError) {
-        res.status(error.statusCode).json({
-          error: error.message,
-          code: error.errorCode,
-          details: error.details,
-        });
-      } else {
-        res.status(500).json({
-          error:
-            error instanceof Error
-              ? error.message
-              : 'Erro interno ao listar unidades de saúde aprovadas',
-          stack: error instanceof Error ? error.stack : null,
-        });
-      }
+      console.error(error); // Para debugging
+      res.status(500).json({ message: 'Erro ao buscar unidades de saúde', error });
     }
   }
 );

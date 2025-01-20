@@ -217,18 +217,19 @@ class HealthUnitService {
 
   public async getApprovedHealthUnits(
     page?: number,
-    filters: Record<string, HealthUnit
-    > = {},
-    limit: number = 4
+    filters: Record<string, HealthUnit> = {},
+    limit: number = 4,
+    showAll: boolean = false // Exibe todas ou apenas as aprovadas
   ) {
+    const finalFilters = showAll ? filters : { ...filters, approved: true };
     return await this.paginationService.findWithPagination(
-      { ...filters, approved: true },
+      finalFilters, // Aplica os filtros finais
       page,
       limit,
-      ['specialties', 'address'] 
+      ['specialties', 'address', 'operating_hours'] // Relações adicionais
     );
   }
-
+  
   public async getUnapprovedHealthUnits(
     filters: Record<string, HealthUnit> = {},
     page: number = 2,
