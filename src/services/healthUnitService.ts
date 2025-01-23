@@ -493,6 +493,62 @@ class HealthUnitService {
       await queryRunner.release();
     }
   }
+
+  public async approveHealthUnit(
+    userId: number,
+    userRole: string,
+    healthUnitId: number
+  ) {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.startTransaction();
+  
+    try {
+      // Buscar a unidade de saúde
+      const healthUnit = await this.healthUnitRepository.findOne({
+        where: { id: healthUnitId },
+        relations: ['user'],
+      });
+  
+      if (!healthUnit) {
+        throw new CustomError(
+          'Unidade de saúde não encontrada.',
+          404,
+          'HEALTH_UNIT_NOT_FOUND'
+        );
+      }
+  
+      // Verificar se o usuário tem permissão para aprovar
+      if (userRole !== 'admin' && healthUnit.user.id !== userId) {
+        throw new CustomError(
+          'Você não tem permissão para aprovar esta unidade de saúde.',
+          403,
+          'FORBIDDEN'
+        );
+      }
+  
+      // Atualizar a unidade de saúde como aprovada
+      healthUnit.approved = true;
+  
+      const updatedHealthUnit = await queryRunner.manager.save(healthUnit);
+  
+      // Commit da transação
+      await queryRunner.commitTransaction();
+  
+      return updatedHealthUnit;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        'Erro ao aprovar a unidade de saúde.',
+        500,
+        'HEALTH_UNIT_APPROVAL_FAILED'
+      );
+    } finally {
+      await queryRunner.release();
+    }
+  }
+  
 }
+
 
 export default new HealthUnitService();

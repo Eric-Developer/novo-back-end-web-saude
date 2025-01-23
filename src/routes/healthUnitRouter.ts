@@ -544,4 +544,49 @@ healthUnitRouter.delete(
   }
 );
 
+// Aprovar uma unidade de saúde
+healthUnitRouter.put(
+  '/health-unit/approve/:id',
+  verifyToken('admin'), 
+  async (req: UserRequest, res: Response) => {
+    const { id } = req.params;
+    const userId = req.userId; 
+    const userType = req.userType; 
+
+    try {
+      const approvedHealthUnit = await healthUnitService.approveHealthUnit(
+        Number(userId),
+        String(userType),
+        Number(id) 
+      );
+
+      res.status(200).json({
+        message: 'Unidade de saúde aprovada com sucesso!',
+        approvedHealthUnit, 
+      });
+    } catch (error) {
+      console.error('Erro ao aprovar unidade de saúde:', error);
+      
+      if (error instanceof CustomError) {
+        res.status(error.statusCode).json({
+          error: error.message,
+          code: error.errorCode,
+          details: error.details,
+        });
+      } else {
+        res.status(500).json({
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Erro ao aprovar unidade de saúde',
+          stack: error instanceof Error ? error.stack : null,
+        });
+      }
+    }
+  }
+);
+healthUnitRouter.get("/",(req:Request,res:Response)=>{
+  res.send("online")
+  return
+})
 export default healthUnitRouter;
