@@ -1,7 +1,7 @@
 import nodemailer, { Transporter, SendMailOptions } from 'nodemailer';
 import { generateWebSaudeEmailHtml } from './layoutEmail';
 
-const siteUrl = 'URL';
+const siteUrl = 'https://novo-back-end-web-saude.onrender.com';
 
 function createTransporter(): Transporter {
   const email = process.env.EMAIL;
@@ -28,7 +28,7 @@ async function sendAccountVerificationEmail(
 ): Promise<void> {
   console.log('Token de verificação:', token);
   const transporter = createTransporter();
-  const verificationUrl = `${siteUrl}/auth/verify?token=${token}&email=${email}`;
+  const verificationUrl = `${siteUrl}/verify?token=${token}&email=${email}`;
 
   const emailContent = `
         Olá!
