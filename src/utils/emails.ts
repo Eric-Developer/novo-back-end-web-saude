@@ -21,29 +21,21 @@ function createTransporter(): Transporter {
   });
 }
 
-// Função renomeada para enviar o e-mail de verificação de cadastro
+// Função para enviar o e-mail de verificação de cadastro
 async function sendAccountVerificationEmail(
   email: string,
   token: string
 ): Promise<void> {
   console.log('Token de verificação:', token);
   const transporter = createTransporter();
-  const verificationUrl = `${siteUrl}/verify?token=${token}&email=${email}`;
-
-  const emailContent = `
-        Olá!
-        
-        Para concluir seu cadastro no Web Saúde, clique no link abaixo para verificar seu e-mail:
-        ${verificationUrl}
-        
-        Caso não tenha solicitado o cadastro, ignore este e-mail.
-    `;
+  const verificationUrl = `${siteUrl}/auth/verify?token=${token}&email=${email}`;
+  const emailContent = 'Para concluir seu cadastro no Web Saúde, clique no botão abaixo para verificar seu e-mail:';
 
   const mailOptions: SendMailOptions = {
     from: `Web Saúde <${process.env.EMAIL}>`,
     to: email,
     subject: 'Verificação de E-mail',
-    html: generateWebSaudeEmailHtml(emailContent),
+    html: generateWebSaudeEmailHtml(verificationUrl, emailContent),
   };
 
   try {
@@ -55,28 +47,20 @@ async function sendAccountVerificationEmail(
   }
 }
 
-// Função renomeada para enviar o e-mail de recuperação de senha
+// Função para enviar o e-mail de recuperação de senha
 async function sendPasswordRecoveryEmail(
   email: string,
   resetToken: string
 ): Promise<void> {
   const transporter = createTransporter();
   const resetUrl = `${siteUrl}/auth/reset-password?token=${resetToken}&email=${email}`;
-
-  const emailContent = `
-        Olá!
-        
-        Para redefinir sua senha no Web Saúde, clique no link abaixo:
-        ${resetUrl}
-        
-        Caso não tenha solicitado a recuperação de senha, ignore este e-mail.
-    `;
+  const emailContent = 'Para redefinir sua senha no Web Saúde, clique no link abaixo:';
 
   const mailOptions: SendMailOptions = {
     from: `Web Saúde <${process.env.EMAIL}>`,
     to: email,
     subject: 'Recuperação de Senha',
-    html: generateWebSaudeEmailHtml(emailContent),
+    html: generateWebSaudeEmailHtml(resetUrl, emailContent),
   };
 
   try {
@@ -90,28 +74,20 @@ async function sendPasswordRecoveryEmail(
   }
 }
 
-// Função renomeada para enviar o e-mail de finalização de cadastro
+// Função para enviar o e-mail de finalização de cadastro
 async function sendFinalizationEmail(
   email: string,
   token: string
 ): Promise<void> {
   const transporter = createTransporter();
   const url = `${siteUrl}/rota?token=${token}&email=${email}`;
-
-  const emailContent = `
-        Olá!
-        
-        Sua solicitação de cadastro foi aprovada. Para finalizar o cadastro do seu estabelecimento, clique no link abaixo:
-        ${url}
-        
-        Caso não tenha solicitado o cadastro, ignore este e-mail.
-    `;
+  const emailContent = 'Sua solicitação de cadastro foi aprovada. Para finalizar o cadastro do seu estabelecimento, clique no link abaixo:';
 
   const mailOptions: SendMailOptions = {
     from: `Web Saúde <${process.env.EMAIL}>`,
     to: email,
     subject: 'Finalização de Cadastro',
-    html: generateWebSaudeEmailHtml(emailContent),
+    html: generateWebSaudeEmailHtml(url, emailContent),
   };
 
   try {
