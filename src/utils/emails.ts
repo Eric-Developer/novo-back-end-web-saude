@@ -1,7 +1,7 @@
 import nodemailer, { Transporter, SendMailOptions } from 'nodemailer';
 import { generateWebSaudeEmailHtml } from './layoutEmail';
 
-const siteUrl = 'https://novo-back-end-web-saude.onrender.com';
+const siteUrl = 'https://websaude.netlify.app';
 
 function createTransporter(): Transporter {
   const email = process.env.EMAIL;

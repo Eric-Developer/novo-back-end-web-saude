@@ -327,8 +327,12 @@ class HealthUnitService {
     return result;
   }
   
-  public async getHealthUnitByName(fullName: string, showAll: boolean, userId?: number, userType?: string) {
-  
+  public async getHealthUnitByName(
+    fullName: string,
+    showAll: boolean,
+    userId?: number,
+    userType?: string
+  ) {
     if (!fullName) {
       throw new CustomError(
         'O nome da unidade de saúde é obrigatório.',
@@ -339,17 +343,44 @@ class HealthUnitService {
   
     const filters: Partial<HealthUnit> = { name: fullName };
   
+    // Usuário funcional
+    if (userType === 'functional' && userId) {
+      const approvedOrOwned = await this.paginationService.findWithPagination(
+        {
+          name: fullName,
+          approved: true,
+        },
+        1, // Página
+        1, // Limite
+        ['address', 'specialties', 'operating_hours'] // Relacionamentos
+      );
+  
+      const ownedByUser = await this.paginationService.findWithPagination(
+        {
+          name: fullName,
+          user_id: userId, // Unidades associadas ao usuário funcional
+        },
+        1,
+        1,
+        ['address', 'specialties', 'operating_hours']
+      );
+  
+      const combinedResults = [...approvedOrOwned.data, ...ownedByUser.data];
+  
+      if (!combinedResults.length) {
+        throw new CustomError(
+          'Unidade de saúde não encontrada.',
+          404,
+          'HEALTH_UNIT_NOT_FOUND'
+        );
+      }
+  
+      return combinedResults[0]; 
+    }
+  
     if (!showAll) {
       filters.approved = true;
     }
-  
-    if (userType === 'functional' && userId) {
-      filters.user_id = userId; 
-      delete filters.approved;
-
-    }
-  
-    console.log("Filters applied:", filters); 
   
     const result = await this.paginationService.findWithPagination(
       filters,
@@ -357,8 +388,6 @@ class HealthUnitService {
       1, 
       ['address', 'specialties', 'operating_hours'] 
     );
-  
-    console.log("Result:", result); 
   
     if (!result.data.length) {
       throw new CustomError(
