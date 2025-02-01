@@ -13,7 +13,7 @@ const userRouter = Router();
 
 // Route para listar os usuários
 userRouter.get(
-  '/search/users',
+  '/users',
   verifyToken('admin'),
   async (req: Request, res: Response) => {
     try {
@@ -42,7 +42,7 @@ userRouter.get(
 
 // Rota para listar um único usuário
 userRouter.get(
-  '/search/user/',
+  '/user/',
   verifyToken(),
   async (req: UserRequest, res: Response) => {
     try {
@@ -75,11 +75,9 @@ userRouter.put(
   '/update/user/',
   verifyToken(),
   async (req: UserRequest, res: Response) => {
-    console.log(req.userId);
     try {
       const updateValidationRules = [
         { field: 'name', required: true },
-        { field: 'email', required: true, isEmail: true },
         { field: 'phone', required: true },
       ];
 
