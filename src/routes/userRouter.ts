@@ -116,7 +116,7 @@ userRouter.put(
 
 // Rota para deletar usuário
 userRouter.delete(
-  '/delete/user/',
+  '/user/',
   verifyToken(),
   async (req: UserRequest, res: Response) => {
     try {
