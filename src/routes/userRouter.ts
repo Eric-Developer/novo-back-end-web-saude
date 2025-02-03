@@ -72,7 +72,7 @@ userRouter.get(
 
 // Rota para alterar informações do usuário
 userRouter.put(
-  '/update/user/',
+  '/user/',
   verifyToken(),
   async (req: UserRequest, res: Response) => {
     try {
