@@ -17,7 +17,7 @@ healthUnitRouter.post(
   upload.single('image'),
   verifyToken(['admin', 'functional']),
   async (req: UserRequest, res: Response) => {
-    const { healthUnitData, addressData, specialtyIds } = req.body;
+    const { healthUnitData, addressData} = req.body;
     try {
       const createValidationRules = [{ field: 'name', required: true }];
 
@@ -39,7 +39,6 @@ healthUnitRouter.post(
       const newHealthUnit = await healthUnitService.newHealthUnit(
         healthUnitData,
         addressData,
-        specialtyIds,
         uploadResult,
         Number(req.userId)
       );
@@ -68,6 +67,7 @@ healthUnitRouter.post(
           details: error.details,
         });
       } else {
+        
         res.status(500).json({
           error:
             error instanceof Error

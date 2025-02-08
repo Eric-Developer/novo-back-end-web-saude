@@ -22,7 +22,6 @@ class HealthUnitService {
   public async newHealthUnit(
     healthUnitData: Partial<HealthUnit>,
     addressData: Partial<Address>,
-    specialtyIds: number[],
     image: string,
     userId: number
   ) {
@@ -47,23 +46,9 @@ class HealthUnitService {
         queryRunner
       );
 
-      const specialties = await this.specialtyRepository.find({
-        where: {
-          id: In(specialtyIds),
-        },
-      });
-      if (specialties.length !== specialtyIds.length) {
-        throw new CustomError(
-          'Uma ou mais especialidades não foram encontradas.',
-          404,
-          'SPECIALTIES_NOT_FOUND'
-        );
-      }
-
       const healthUnit = this.healthUnitRepository.create({
         ...healthUnitData,
         address: newAddress,
-        specialties,
         image,
         user_id: userId,
       });

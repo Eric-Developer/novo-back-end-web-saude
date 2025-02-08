@@ -52,7 +52,7 @@ export default class HealthUnit implements IHealthUnit {
   @Column({ type: 'text', nullable: true })
   image: string;
 
-  @Column()
+  @Column({default: null})
   email: string;
 
   @Column({
@@ -62,16 +62,16 @@ export default class HealthUnit implements IHealthUnit {
   })
   type: HealthUnitType;
 
-  @Column()
+  @Column({default: null})
   whatsapp: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column()
+  @Column({default: null})
   longitude: string;
 
-  @Column()
+  @Column({default: null})
   latitude: string;
 
   @Column({ default: false })
