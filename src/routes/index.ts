@@ -4,6 +4,7 @@ import userRouter from './userRouter';
 import healthUnitRouter from './healthUnitRouter';
 import specialtyRouter from './specialtyRouter';
 import operatingHoursRouter from './operatingHoursRouter';
+import favoriteRouter from './FavoritesRouter';
 
 const router = Router();
 
@@ -13,6 +14,7 @@ router.use(
   userRouter,
   healthUnitRouter,
   specialtyRouter,
-  operatingHoursRouter
+  operatingHoursRouter,
+  favoriteRouter
 );
 export default router;

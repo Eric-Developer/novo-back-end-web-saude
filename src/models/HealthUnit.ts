@@ -17,6 +17,7 @@ import Address from './Address';
 import Specialty from './Specialty';
 import OperatingHours from './OperatingHours';
 import Exam from './Exam';
+import Favorite from './Favorites';
 
 export enum HealthUnitType {
   Clinic = 'clinic',
@@ -39,6 +40,7 @@ interface IHealthUnit {
   specialties: Specialty[];
   exams: Exam[];
   operating_hours: OperatingHours[];
+  favorites: Favorite[]
 }
 
 @Entity('HealthUnit')
@@ -61,6 +63,9 @@ export default class HealthUnit implements IHealthUnit {
     default: HealthUnitType.Clinic,
   })
   type: HealthUnitType;
+
+  @OneToMany(() => Favorite, (favorite: Favorite) => favorite.healthUnit)
+  favorites: Favorite[];
 
   @Column({default: null})
   whatsapp: string;

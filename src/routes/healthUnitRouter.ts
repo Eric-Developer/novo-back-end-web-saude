@@ -328,14 +328,13 @@ healthUnitRouter.get(
 
 // Listar unidades de saúde do usuário (baseado no ID do usuário)
 healthUnitRouter.get(
-  '/health-units/user/:userId',
+  '/health-units/user',
   verifyToken('functional'),
-  async (req: Request, res: Response) => {
-    const { userId } = req.params;
+  async (req: UserRequest, res: Response) => {
 
     try {
       const userHealthUnits = await healthUnitService.getHealthUnitsByUserId(
-        Number(userId)
+        Number(req.userId)
       );
       res.status(200).json(userHealthUnits);
     } catch (error) {

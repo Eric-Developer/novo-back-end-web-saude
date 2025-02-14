@@ -273,10 +273,14 @@ class HealthUnitService {
   }
   
   public async getHealthUnitsByUserId(userId: number) {
-    return await this.healthUnitRepository.find({
+    const result =  await this.healthUnitRepository.find({
       where: { user_id: userId },
       relations: ['address'],
     });
+    
+    return {
+      data: result
+    }
   }
 
   public async filterHealthUnitsByType(
@@ -328,22 +332,21 @@ class HealthUnitService {
   
     const filters: Partial<HealthUnit> = { name: fullName };
   
-    // Usuário funcional
     if (userType === 'functional' && userId) {
       const approvedOrOwned = await this.paginationService.findWithPagination(
         {
           name: fullName,
           approved: true,
         },
-        1, // Página
-        1, // Limite
-        ['address', 'specialties', 'operating_hours'] // Relacionamentos
+        1, 
+        1,
+        ['address', 'specialties', 'operating_hours']
       );
   
       const ownedByUser = await this.paginationService.findWithPagination(
         {
           name: fullName,
-          user_id: userId, // Unidades associadas ao usuário funcional
+          user_id: userId, 
         },
         1,
         1,
@@ -517,7 +520,6 @@ class HealthUnitService {
     await queryRunner.startTransaction();
   
     try {
-      // Buscar a unidade de saúde
       const healthUnit = await this.healthUnitRepository.findOne({
         where: { id: healthUnitId },
         relations: ['user'],
@@ -531,7 +533,6 @@ class HealthUnitService {
         );
       }
   
-      // Verificar se o usuário tem permissão para aprovar
       if (userRole !== 'admin' && healthUnit.user.id !== userId) {
         throw new CustomError(
           'Você não tem permissão para aprovar esta unidade de saúde.',
@@ -540,12 +541,10 @@ class HealthUnitService {
         );
       }
   
-      // Atualizar a unidade de saúde como aprovada
       healthUnit.approved = true;
   
       const updatedHealthUnit = await queryRunner.manager.save(healthUnit);
   
-      // Commit da transação
       await queryRunner.commitTransaction();
   
       return updatedHealthUnit;
