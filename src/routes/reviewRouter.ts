@@ -32,9 +32,9 @@ reviewRouter.get('/reviews/:healthUnitId', verifyToken(), async (req: Request, r
 // Rota para adicionar uma avaliação
 reviewRouter.post('/review', verifyToken(), async (req: UserRequest, res: Response) => {
   try {
-    const { health_unit_id, rating, comment } = req.body;
+    const { health_unit_id, comment } = req.body;
     
-    const review = await reviewService.createReview(Number(req.userId), health_unit_id, rating, comment);
+    const review = await reviewService.createReview(Number(req.userId), health_unit_id, comment);
     res.status(201).json(review);
   } catch (error) {
     console.error('Erro ao adicionar avaliação:', error);

@@ -14,7 +14,6 @@ import {
     id: number;
     user_id: number;
     health_unit_id: number;
-    rating: number;
     comment: string;
     created_at: Date;
   }
@@ -38,9 +37,6 @@ import {
     })
     @JoinColumn({ name: 'health_unit_id' })
     healthUnit: HealthUnit;
-  
-    @Column()
-    rating: number;
   
     @Column({ type: 'text' })
     comment: string;

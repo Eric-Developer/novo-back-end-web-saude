@@ -16,7 +16,7 @@ class ReviewService {
     this.healthUnitRepository = AppDataSource.getRepository(HealthUnit);
   }
 
-  public async createReview(userId: number, healthUnitId: number, rating: number, comment: string): Promise<Review> {
+  public async createReview(userId: number, healthUnitId: number, comment: string): Promise<Review> {
     try {
       const user = await this.userRepository.findOne({ where: { id: userId } });
       const healthUnit = await this.healthUnitRepository.findOne({ where: { id: healthUnitId } });
@@ -32,10 +32,7 @@ class ReviewService {
       const review = this.reviewRepository.create({
         user_id: userId,
         health_unit_id: healthUnitId,
-        rating,
         comment,
-        user,
-        healthUnit,
       });
 
       return await this.reviewRepository.save(review);
