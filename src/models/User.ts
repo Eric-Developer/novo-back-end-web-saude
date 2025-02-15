@@ -6,7 +6,9 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
+
 import HealthUnit from './HealthUnit';
+import Review from './Review';
 
 enum UserType {
   Common = 'common',
@@ -23,6 +25,7 @@ interface IUser {
   user_type: UserType;
   image: string;
   is_active: boolean;
+  reviews: Review[]
 }
 
 @Entity('User')
@@ -60,6 +63,9 @@ export default class User implements IUser {
   })
   healthUnits: HealthUnit[];
 
+  @OneToMany(() => Review, (review: Review) => review.user)
+  reviews: Review[];
+  
   @CreateDateColumn()
   created_at: Date;
 

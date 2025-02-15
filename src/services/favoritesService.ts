@@ -43,7 +43,6 @@ import CustomError from '../utils/CustomError';
         is_favorite: true,
         health_unit_id: healthUnitId,
         user,
-        healthUnit,
       });
   
       return await this.favoriteRepository.save(favorite);
@@ -59,12 +58,14 @@ import CustomError from '../utils/CustomError';
   
   public async getFavoritesByUser(userId: number): Promise<HealthUnit[]> {
     try {
-      const favorites = await this.healthUnitRepository.find({
-        where: { user_id: userId },
-        relations: ['user', 'favorites', 'address' ],
+      const favorites = await this.favoriteRepository.find({
+        where: { user: { id: userId } },
+        relations: ['healthUnit', 'healthUnit.address'],
       });
-
-      return favorites;
+  
+      const healthUnits = favorites.flatMap(favorite => favorite.healthUnit); 
+      
+      return healthUnits;
     } catch (error) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
@@ -74,13 +75,14 @@ import CustomError from '../utils/CustomError';
       );
     }
   }
+  
 
   public async deleteFavorite(userId: number, healthUnitId: number): Promise<void> {
     try {
       const favorite = await this.favoriteRepository.findOne({
         where: { user_id: userId, health_unit_id: healthUnitId },
       });
-
+     console.log(favorite)
       if (!favorite) {
         throw new CustomError('Favorito não encontrado.', 404, 'FAVORITE_NOT_FOUND');
       }

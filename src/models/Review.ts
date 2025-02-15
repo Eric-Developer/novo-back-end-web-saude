@@ -6,43 +6,47 @@ import {
     ManyToOne,
     JoinColumn,
   } from 'typeorm';
-
+  
   import User from './User';
   import HealthUnit from './HealthUnit';
   
-  export interface IFavorite {
+  export interface IReview {
     id: number;
-    is_favorite: boolean;
     user_id: number;
     health_unit_id: number;
-    user: User;
-    healthUnit: HealthUnit[];
+    rating: number;
+    comment: string;
     created_at: Date;
   }
-
-  @Entity('Favorites')
-  export default class Favorite implements IFavorite {
+  
+  @Entity('Review')
+  export default class Review implements IReview {
     @PrimaryGeneratedColumn('increment')
     id: number;
   
-    @Column({ default: false })
-    is_favorite: boolean;
-
     @Column()
     user_id: number;
-  
     @Column()
     health_unit_id: number;
-  
-    @ManyToOne(() => User, { onDelete: 'CASCADE' })
+
+    @ManyToOne(() => User, (user: User) => user.reviews, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user: User;
   
-    @ManyToOne(() => HealthUnit, { onDelete: 'CASCADE' })
+    @ManyToOne(() => HealthUnit, (healthUnit: HealthUnit) => healthUnit.reviews, {
+      onDelete: 'CASCADE',
+    })
     @JoinColumn({ name: 'health_unit_id' })
-    healthUnit: HealthUnit[];
+    healthUnit: HealthUnit;
+  
+    @Column()
+    rating: number;
+  
+    @Column({ type: 'text' })
+    comment: string;
   
     @CreateDateColumn()
     created_at: Date;
+    
   }
   
