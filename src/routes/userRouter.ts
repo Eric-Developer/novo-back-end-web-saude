@@ -73,7 +73,8 @@ userRouter.get(
 // Rota para alterar informações do usuário
 userRouter.put(
   '/user/',
-  verifyToken(),
+  verifyToken(), upload.single('image'),
+
   async (req: UserRequest, res: Response) => {
     try {
       const updateValidationRules = [
@@ -81,6 +82,16 @@ userRouter.put(
         { field: 'phone', required: true },
       ];
 
+       if (!req.file) {
+              res.status(400).json({ error: 'Arquivo de imagem não encontrado' });
+              return;
+            }
+      
+      const filePath = path.resolve(req.file.path);
+      
+      const uploadResult = await cloudinaryService.uploadImage(filePath);
+
+      req.body.image = uploadResult
       const errors = validateFields(req.body, updateValidationRules);
 
       if (errors.length) {
