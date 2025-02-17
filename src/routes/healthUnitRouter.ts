@@ -17,7 +17,7 @@ healthUnitRouter.post(
   upload.single('image'),
   verifyToken(['admin', 'functional']),
   async (req: UserRequest, res: Response) => {
-    const { healthUnitData, addressData} = req.body;
+    const { healthUnitData, addressData } = req.body;
     try {
       const createValidationRules = [{ field: 'name', required: true }];
 
@@ -67,7 +67,6 @@ healthUnitRouter.post(
           details: error.details,
         });
       } else {
-        
         res.status(500).json({
           error:
             error instanceof Error
@@ -201,12 +200,13 @@ healthUnitRouter.get(
 );
 
 healthUnitRouter.get(
-  '/health-units/search',verifyToken("", true), 
+  '/health-units/search',
+  verifyToken('', true),
   async (req: UserRequest, res: Response) => {
     const { searchTerm } = req.query;
-    const page = parseInt(req.query.page as string, 10)
+    const page = parseInt(req.query.page as string, 10);
     const isAdmin = req.userType === 'admin';
-    const showAll = !!req.userId && isAdmin;       
+    const showAll = !!req.userId && isAdmin;
 
     if (typeof searchTerm !== 'string' || searchTerm.length < 3) {
       console.log(searchTerm);
@@ -217,8 +217,13 @@ healthUnitRouter.get(
     }
 
     try {
-      const healthUnits =
-        await healthUnitService.searchHealthUnitsByName(searchTerm, page,{}, 4, showAll);
+      const healthUnits = await healthUnitService.searchHealthUnitsByName(
+        searchTerm,
+        page,
+        {},
+        4,
+        showAll
+      );
       res.status(200).json(healthUnits);
     } catch (error) {
       console.error('Erro ao buscar unidades de saúde:', error);
@@ -244,25 +249,27 @@ healthUnitRouter.get(
 // Listar unidades de saúde aprovadas
 healthUnitRouter.get(
   '/health-units',
-  verifyToken("", true), 
+  verifyToken('', true),
   async (req: UserRequest, res: Response) => {
     try {
       const page = parseInt(req.query.page as string, 10) || 1;
       const limit = parseInt(req.query.limit as string, 10) || 4;
 
       const isAdmin = req.userType === 'admin';
-      const showAll = !!req.userId && isAdmin
+      const showAll = !!req.userId && isAdmin;
       const healthUnits = await healthUnitService.getApprovedHealthUnits(
         page,
-        {}, 
+        {},
         limit,
-        showAll 
+        showAll
       );
 
       res.status(200).json(healthUnits);
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: 'Erro ao buscar unidades de saúde', error });
+      res
+        .status(500)
+        .json({ message: 'Erro ao buscar unidades de saúde', error });
     }
   }
 );
@@ -331,7 +338,6 @@ healthUnitRouter.get(
   '/health-units/user',
   verifyToken('functional'),
   async (req: UserRequest, res: Response) => {
-
     try {
       const userHealthUnits = await healthUnitService.getHealthUnitsByUserId(
         Number(req.userId)
@@ -360,10 +366,11 @@ healthUnitRouter.get(
 
 // Filtrar unidades de saúde por tipo
 healthUnitRouter.get(
-  '/health-units/filter', verifyToken("",true),
+  '/health-units/filter',
+  verifyToken('', true),
   async (req: UserRequest, res: Response) => {
     const { type } = req.query;
-    const page = parseInt(req.query.page as string, 10)
+    const page = parseInt(req.query.page as string, 10);
     const isAdmin = req.userType === 'admin';
     const showAll = !!req.userId && isAdmin;
     if (typeof type !== 'string') {
@@ -375,7 +382,7 @@ healthUnitRouter.get(
 
     try {
       const filteredHealthUnits =
-        await healthUnitService.filterHealthUnitsByType(type,page,4,showAll);
+        await healthUnitService.filterHealthUnitsByType(type, page, 4, showAll);
       res.status(200).json(filteredHealthUnits);
     } catch (error) {
       console.error('Erro ao filtrar unidades de saúde:', error);
@@ -444,20 +451,25 @@ healthUnitRouter.get(
 
 // Buscar unidades de saúde por especialidade
 healthUnitRouter.get(
-  '/health-units/specialty/:specialtyName', verifyToken("",true),
+  '/health-units/specialty/:specialtyName',
+  verifyToken('', true),
   async (req: UserRequest, res: Response) => {
     const { specialtyName } = req.params;
-    const page = parseInt(req.query.page as string, 10)
+    const page = parseInt(req.query.page as string, 10);
     const isAdmin = req.userType === 'admin';
-    const showAll = !!req.userId && isAdmin;   
+    const showAll = !!req.userId && isAdmin;
     if (typeof specialtyName !== 'string' || !specialtyName.trim()) {
       res.status(400).json({ error: 'O nome da especialidade é obrigatório.' });
       return;
     }
 
     try {
-      const healthUnits =
-        await healthUnitService.getHealthUnitsBySpecialty(specialtyName,page,4,showAll);
+      const healthUnits = await healthUnitService.getHealthUnitsBySpecialty(
+        specialtyName,
+        page,
+        4,
+        showAll
+      );
       res.status(200).json(healthUnits);
     } catch (error) {
       console.error(
@@ -492,12 +504,10 @@ healthUnitRouter.delete(
     const { specialtyIds } = req.body;
 
     if (!Array.isArray(specialtyIds) || specialtyIds.length === 0) {
-      res
-        .status(400)
-        .json({
-          error:
-            'A lista de IDs de especialidades é obrigatória e deve conter pelo menos um ID.',
-        });
+      res.status(400).json({
+        error:
+          'A lista de IDs de especialidades é obrigatória e deve conter pelo menos um ID.',
+      });
       return;
     }
 
@@ -509,12 +519,10 @@ healthUnitRouter.delete(
         );
 
       if (!removedSpecialties) {
-        res
-          .status(404)
-          .json({
-            message:
-              'Unidade de saúde não encontrada ou nenhuma especialidade removida.',
-          });
+        res.status(404).json({
+          message:
+            'Unidade de saúde não encontrada ou nenhuma especialidade removida.',
+        });
         return;
       }
 
@@ -546,26 +554,26 @@ healthUnitRouter.delete(
 // Aprovar uma unidade de saúde
 healthUnitRouter.put(
   '/health-unit/approve/:id',
-  verifyToken('admin'), 
+  verifyToken('admin'),
   async (req: UserRequest, res: Response) => {
     const { id } = req.params;
-    const userId = req.userId; 
-    const userType = req.userType; 
+    const userId = req.userId;
+    const userType = req.userType;
 
     try {
       const approvedHealthUnit = await healthUnitService.approveHealthUnit(
         Number(userId),
         String(userType),
-        Number(id) 
+        Number(id)
       );
 
       res.status(200).json({
         message: 'Unidade de saúde aprovada com sucesso!',
-        approvedHealthUnit, 
+        approvedHealthUnit,
       });
     } catch (error) {
       console.error('Erro ao aprovar unidade de saúde:', error);
-      
+
       if (error instanceof CustomError) {
         res.status(error.statusCode).json({
           error: error.message,
@@ -584,8 +592,8 @@ healthUnitRouter.put(
     }
   }
 );
-healthUnitRouter.get("/",(req:Request,res:Response)=>{
-  res.send("online")
-  return
-})
+healthUnitRouter.get('/', (req: Request, res: Response) => {
+  res.send('online');
+  return;
+});
 export default healthUnitRouter;

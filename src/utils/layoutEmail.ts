@@ -1,5 +1,5 @@
 function generateWebSaudeEmailHtml(url: string, content: string): string {
-    return `
+  return `
     <!DOCTYPE html>
   <html lang="pt-br">
   <head>
@@ -78,7 +78,6 @@ function generateWebSaudeEmailHtml(url: string, content: string): string {
   </body>
   </html>
       `;
-  }
-  
-  export { generateWebSaudeEmailHtml };
-  
+}
+
+export { generateWebSaudeEmailHtml };

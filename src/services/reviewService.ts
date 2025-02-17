@@ -16,17 +16,27 @@ class ReviewService {
     this.healthUnitRepository = AppDataSource.getRepository(HealthUnit);
   }
 
-  public async createReview(userId: number, healthUnitId: number, comment: string): Promise<Review> {
+  public async createReview(
+    userId: number,
+    healthUnitId: number,
+    comment: string
+  ): Promise<Review> {
     try {
       const user = await this.userRepository.findOne({ where: { id: userId } });
-      const healthUnit = await this.healthUnitRepository.findOne({ where: { id: healthUnitId } });
+      const healthUnit = await this.healthUnitRepository.findOne({
+        where: { id: healthUnitId },
+      });
 
       if (!user) {
         throw new CustomError('Usuário não encontrado.', 404, 'USER_NOT_FOUND');
       }
 
       if (!healthUnit) {
-        throw new CustomError('Unidade de saúde não encontrada.', 404, 'HEALTH_UNIT_NOT_FOUND');
+        throw new CustomError(
+          'Unidade de saúde não encontrada.',
+          404,
+          'HEALTH_UNIT_NOT_FOUND'
+        );
       }
 
       const review = this.reviewRepository.create({
@@ -64,10 +74,16 @@ class ReviewService {
 
   public async deleteReview(userId: number, reviewId: number): Promise<void> {
     try {
-      const review = await this.reviewRepository.findOne({ where: { id: reviewId, user_id: userId } });
+      const review = await this.reviewRepository.findOne({
+        where: { id: reviewId, user_id: userId },
+      });
 
       if (!review) {
-        throw new CustomError('Avaliação não encontrada ou não pertence ao usuário.', 404, 'REVIEW_NOT_FOUND');
+        throw new CustomError(
+          'Avaliação não encontrada ou não pertence ao usuário.',
+          404,
+          'REVIEW_NOT_FOUND'
+        );
       }
 
       await this.reviewRepository.remove(review);

@@ -19,6 +19,7 @@ import OperatingHours from './OperatingHours';
 import Exam from './Exam';
 import Favorite from './Favorites';
 import Review from './Review';
+import HealthUnitImage from './HealthUnitImage';
 
 export enum HealthUnitType {
   Clinic = 'clinic',
@@ -41,7 +42,7 @@ interface IHealthUnit {
   specialties: Specialty[];
   exams: Exam[];
   operating_hours: OperatingHours[];
-  favorites: Favorite[]
+  favorites: Favorite[];
   reviews: Review[];
 }
 
@@ -56,7 +57,7 @@ export default class HealthUnit implements IHealthUnit {
   @Column({ type: 'text', nullable: true })
   image: string;
 
-  @Column({default: null})
+  @Column({ default: null })
   email: string;
 
   @Column({
@@ -72,16 +73,21 @@ export default class HealthUnit implements IHealthUnit {
   @OneToMany(() => Review, (review: Review) => review.healthUnit)
   reviews: Review[];
 
-  @Column({default: null})
+  @OneToMany(
+    () => HealthUnitImage,
+    (image: HealthUnitImage) => image.healthUnit
+  )
+  images: HealthUnitImage[];
+  @Column({ default: null })
   whatsapp: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({default: null})
+  @Column({ default: null })
   longitude: string;
 
-  @Column({default: null})
+  @Column({ default: null })
   latitude: string;
 
   @Column({ default: false })

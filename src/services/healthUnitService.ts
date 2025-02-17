@@ -16,7 +16,9 @@ class HealthUnitService {
   constructor() {
     this.healthUnitRepository = AppDataSource.getRepository(HealthUnit);
     this.specialtyRepository = AppDataSource.getRepository(Specialty);
-    this.paginationService = new PaginationService<HealthUnit>(this.healthUnitRepository);
+    this.paginationService = new PaginationService<HealthUnit>(
+      this.healthUnitRepository
+    );
   }
 
   public async newHealthUnit(
@@ -197,7 +199,11 @@ class HealthUnitService {
     page: number = 1,
     limit: number = 4
   ) {
-    return await this.paginationService.findWithPagination(filters, page, limit,['specialties', 'address', 'operating_hours'] 
+    return await this.paginationService.findWithPagination(
+      filters,
+      page,
+      limit,
+      ['specialties', 'address', 'operating_hours']
     );
   }
 
@@ -205,17 +211,17 @@ class HealthUnitService {
     page?: number,
     filters: Record<string, HealthUnit> = {},
     limit: number = 4,
-    showAll: boolean = false 
+    showAll: boolean = false
   ) {
     const finalFilters = showAll ? filters : { ...filters, approved: true };
     return await this.paginationService.findWithPagination(
-      finalFilters, 
+      finalFilters,
       page,
       limit,
-      ['specialties', 'address', 'operating_hours'] 
+      ['specialties', 'address', 'operating_hours']
     );
   }
-  
+
   public async getUnapprovedHealthUnits(
     filters: Record<string, HealthUnit> = {},
     page: number = 2,
@@ -246,9 +252,9 @@ class HealthUnitService {
         'SEARCH_TERM_TOO_SHORT'
       );
     }
-  
+
     const finalFilters = showAll ? filters : { ...filters, approved: true };
-  
+
     const result = await this.paginationService.findWithPagination(
       finalFilters,
       page,
@@ -258,29 +264,33 @@ class HealthUnitService {
         if (!showAll) {
           qb.andWhere('entity.approved = :approved', { approved: true });
         }
-  
+
         qb.andWhere(
           new Brackets((subQb) => {
             subQb
-              .where('entity.name ILIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
-              .orWhere('specialties.name ILIKE :searchTerm', { searchTerm: `%${searchTerm}%` });
+              .where('entity.name ILIKE :searchTerm', {
+                searchTerm: `%${searchTerm}%`,
+              })
+              .orWhere('specialties.name ILIKE :searchTerm', {
+                searchTerm: `%${searchTerm}%`,
+              });
           })
         );
       }
     );
-  
+
     return result;
   }
-  
+
   public async getHealthUnitsByUserId(userId: number) {
-    const result =  await this.healthUnitRepository.find({
+    const result = await this.healthUnitRepository.find({
       where: { user_id: userId },
       relations: ['address'],
     });
-    
+
     return {
-      data: result
-    }
+      data: result,
+    };
   }
 
   public async filterHealthUnitsByType(
@@ -292,7 +302,7 @@ class HealthUnitService {
     const validType = Object.values(HealthUnitType).find(
       (t) => t.toLowerCase() === type.toLowerCase()
     );
-  
+
     if (!validType) {
       throw new CustomError(
         'Tipo de unidade de saúde inválido.',
@@ -300,22 +310,22 @@ class HealthUnitService {
         'INVALID_HEALTH_UNIT_TYPE'
       );
     }
-  
+
     const filters: Partial<HealthUnit> = { type: validType as HealthUnitType };
     if (!showAll) {
-      filters.approved = true; 
+      filters.approved = true;
     }
-  
+
     const result = await this.paginationService.findWithPagination(
       filters,
       page,
       limit,
       ['specialties', 'address']
     );
-  
+
     return result;
   }
-  
+
   public async getHealthUnitByName(
     fullName: string,
     showAll: boolean,
@@ -329,32 +339,32 @@ class HealthUnitService {
         'MISSING_NAME'
       );
     }
-  
+
     const filters: Partial<HealthUnit> = { name: fullName };
-  
+
     if (userType === 'functional' && userId) {
       const approvedOrOwned = await this.paginationService.findWithPagination(
         {
           name: fullName,
           approved: true,
         },
-        1, 
+        1,
         1,
         ['address', 'specialties', 'operating_hours']
       );
-  
+
       const ownedByUser = await this.paginationService.findWithPagination(
         {
           name: fullName,
-          user_id: userId, 
+          user_id: userId,
         },
         1,
         1,
         ['address', 'specialties', 'operating_hours']
       );
-  
+
       const combinedResults = [...approvedOrOwned.data, ...ownedByUser.data];
-  
+
       if (!combinedResults.length) {
         throw new CustomError(
           'Unidade de saúde não encontrada.',
@@ -362,21 +372,21 @@ class HealthUnitService {
           'HEALTH_UNIT_NOT_FOUND'
         );
       }
-  
-      return combinedResults[0]; 
+
+      return combinedResults[0];
     }
-  
+
     if (!showAll) {
       filters.approved = true;
     }
-  
+
     const result = await this.paginationService.findWithPagination(
       filters,
-      1, 
-      1, 
-      ['address', 'specialties', 'operating_hours'] 
+      1,
+      1,
+      ['address', 'specialties', 'operating_hours']
     );
-  
+
     if (!result.data.length) {
       throw new CustomError(
         'Unidade de saúde não encontrada.',
@@ -384,10 +394,10 @@ class HealthUnitService {
         'HEALTH_UNIT_NOT_FOUND'
       );
     }
-  
+
     return result.data[0];
   }
-  
+
   public async getHealthUnitsBySpecialty(
     specialtyName: string,
     page?: number,
@@ -401,11 +411,11 @@ class HealthUnitService {
         'MISSING_SPECIALTY_NAME'
       );
     }
-  
+
     const specialty = await this.specialtyRepository.findOne({
       where: { name: ILike(`%${specialtyName}%`) },
     });
-  
+
     if (!specialty) {
       throw new CustomError(
         'Especialidade não encontrada.',
@@ -413,22 +423,25 @@ class HealthUnitService {
         'SPECIALTY_NOT_FOUND'
       );
     }
-  
-    const queryBuilder = this.healthUnitRepository.createQueryBuilder('health_unit')
+
+    const queryBuilder = this.healthUnitRepository
+      .createQueryBuilder('health_unit')
       .leftJoinAndSelect('health_unit.specialties', 'specialty')
       .leftJoinAndSelect('health_unit.address', 'address');
-  
-    queryBuilder.andWhere('specialty.id = :specialtyId', { specialtyId: specialty.id });
-  
+
+    queryBuilder.andWhere('specialty.id = :specialtyId', {
+      specialtyId: specialty.id,
+    });
+
     if (!showAll) {
       queryBuilder.andWhere('health_unit.approved = true');
     }
-  
+
     queryBuilder.skip((Number(page || 1) - 1) * limit).take(limit);
-  
+
     const [result, total] = await queryBuilder.getManyAndCount();
     const totalPages = Math.ceil(total / limit);
-  
+
     return {
       data: result,
       totalPages,
@@ -436,39 +449,35 @@ class HealthUnitService {
       limit,
     };
   }
-  
-  
-  
-  
+
   public async deleteAllHealthUnitsByUser(
     userId: number,
     queryRunner: QueryRunner
   ) {
-      const healthUnits = await this.healthUnitRepository.find({
-        where: { user_id: userId },
-        relations: ['address'],
-      });
+    const healthUnits = await this.healthUnitRepository.find({
+      where: { user_id: userId },
+      relations: ['address'],
+    });
 
-      if (healthUnits.length === 0) {
-        throw new CustomError(
-          'Nenhuma unidade de saúde encontrada para o usuário especificado.',
-          404,
-          'HEALTH_UNITS_NOT_FOUND'
+    if (healthUnits.length === 0) {
+      throw new CustomError(
+        'Nenhuma unidade de saúde encontrada para o usuário especificado.',
+        404,
+        'HEALTH_UNITS_NOT_FOUND'
+      );
+    }
+
+    for (const healthUnit of healthUnits) {
+      if (healthUnit.address) {
+        await addressService.deleteAddress(
+          Number(healthUnit.address.id),
+          queryRunner
         );
       }
-
-      for (const healthUnit of healthUnits) {
-        if (healthUnit.address) {
-          await addressService.deleteAddress(
-            Number(healthUnit.address.id),
-            queryRunner
-          );
-        }
-        await queryRunner.manager.remove(healthUnit);
-      }
-    
+      await queryRunner.manager.remove(healthUnit);
+    }
   }
-  
+
   public async removeSpecialtiesFromHealthUnit(
     healthUnitId: number,
     specialtyIds: number[]
@@ -518,13 +527,13 @@ class HealthUnitService {
   ) {
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.startTransaction();
-  
+
     try {
       const healthUnit = await this.healthUnitRepository.findOne({
         where: { id: healthUnitId },
         relations: ['user'],
       });
-  
+
       if (!healthUnit) {
         throw new CustomError(
           'Unidade de saúde não encontrada.',
@@ -532,7 +541,7 @@ class HealthUnitService {
           'HEALTH_UNIT_NOT_FOUND'
         );
       }
-  
+
       if (userRole !== 'admin' && healthUnit.user.id !== userId) {
         throw new CustomError(
           'Você não tem permissão para aprovar esta unidade de saúde.',
@@ -540,13 +549,13 @@ class HealthUnitService {
           'FORBIDDEN'
         );
       }
-  
+
       healthUnit.approved = true;
-  
+
       const updatedHealthUnit = await queryRunner.manager.save(healthUnit);
-  
+
       await queryRunner.commitTransaction();
-  
+
       return updatedHealthUnit;
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -560,8 +569,6 @@ class HealthUnitService {
       await queryRunner.release();
     }
   }
-  
 }
-
 
 export default new HealthUnitService();

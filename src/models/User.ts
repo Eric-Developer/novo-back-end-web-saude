@@ -25,7 +25,7 @@ interface IUser {
   user_type: UserType;
   image: string;
   is_active: boolean;
-  reviews: Review[]
+  reviews: Review[];
 }
 
 @Entity('User')
@@ -65,7 +65,7 @@ export default class User implements IUser {
 
   @OneToMany(() => Review, (review: Review) => review.user)
   reviews: Review[];
-  
+
   @CreateDateColumn()
   created_at: Date;
 

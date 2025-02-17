@@ -1,4 +1,4 @@
-import { Repository, SelectQueryBuilder, ObjectLiteral } from "typeorm";
+import { Repository, SelectQueryBuilder, ObjectLiteral } from 'typeorm';
 
 // Tipo para filtros genéricos
 export type Filters<T> = {
@@ -17,7 +17,8 @@ export class PaginationService<T extends ObjectLiteral> {
     relations: string[] = [],
     queryCallback?: (qb: SelectQueryBuilder<T>) => void // Callback opcional para personalizar a query
   ): Promise<{ data: T[]; totalPages: number; page: number; limit: number }> {
-    const queryBuilder: SelectQueryBuilder<T> = this.repository.createQueryBuilder("entity");
+    const queryBuilder: SelectQueryBuilder<T> =
+      this.repository.createQueryBuilder('entity');
 
     // Aplica os filtros
     Object.entries(filters).forEach(([key, value]) => {

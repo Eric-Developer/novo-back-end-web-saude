@@ -5,7 +5,7 @@ import HealthUnit from '../models/HealthUnit';
 import AppDataSource from '../database/config';
 import CustomError from '../utils/CustomError';
 
- class FavoriteService {
+class FavoriteService {
   private favoriteRepository: Repository<Favorite>;
   private userRepository: Repository<User>;
   private healthUnitRepository: Repository<HealthUnit>;
@@ -16,35 +16,48 @@ import CustomError from '../utils/CustomError';
     this.healthUnitRepository = AppDataSource.getRepository(HealthUnit);
   }
 
-  public async createFavorite(userId: number, healthUnitId: number): Promise<Favorite> {
+  public async createFavorite(
+    userId: number,
+    healthUnitId: number
+  ): Promise<Favorite> {
     try {
       const user = await this.userRepository.findOne({ where: { id: userId } });
-      const healthUnit = await this.healthUnitRepository.findOne({ where: { id: healthUnitId } });
-  
+      const healthUnit = await this.healthUnitRepository.findOne({
+        where: { id: healthUnitId },
+      });
+
       if (!user) {
         throw new CustomError('Usuário não encontrado.', 404, 'USER_NOT_FOUND');
       }
-  
+
       if (!healthUnit) {
-        throw new CustomError('Unidade de saúde não encontrada.', 404, 'HEALTH_UNIT_NOT_FOUND');
+        throw new CustomError(
+          'Unidade de saúde não encontrada.',
+          404,
+          'HEALTH_UNIT_NOT_FOUND'
+        );
       }
-  
+
       // Verificar se o favorito já existe
       const existingFavorite = await this.favoriteRepository.findOne({
         where: { user_id: userId, health_unit_id: healthUnitId },
       });
-  
+
       if (existingFavorite) {
-        throw new CustomError('Este favorito já foi adicionado.', 400, 'FAVORITE_ALREADY_EXISTS');
+        throw new CustomError(
+          'Este favorito já foi adicionado.',
+          400,
+          'FAVORITE_ALREADY_EXISTS'
+        );
       }
-  
+
       const favorite = this.favoriteRepository.create({
         user_id: userId,
         is_favorite: true,
         health_unit_id: healthUnitId,
         user,
       });
-  
+
       return await this.favoriteRepository.save(favorite);
     } catch (error) {
       if (error instanceof CustomError) throw error;
@@ -55,16 +68,16 @@ import CustomError from '../utils/CustomError';
       );
     }
   }
-  
+
   public async getFavoritesByUser(userId: number): Promise<HealthUnit[]> {
     try {
       const favorites = await this.favoriteRepository.find({
         where: { user: { id: userId } },
         relations: ['healthUnit', 'healthUnit.address'],
       });
-  
-      const healthUnits = favorites.flatMap(favorite => favorite.healthUnit); 
-      
+
+      const healthUnits = favorites.flatMap((favorite) => favorite.healthUnit);
+
       return healthUnits;
     } catch (error) {
       if (error instanceof CustomError) throw error;
@@ -75,16 +88,22 @@ import CustomError from '../utils/CustomError';
       );
     }
   }
-  
 
-  public async deleteFavorite(userId: number, healthUnitId: number): Promise<void> {
+  public async deleteFavorite(
+    userId: number,
+    healthUnitId: number
+  ): Promise<void> {
     try {
       const favorite = await this.favoriteRepository.findOne({
         where: { user_id: userId, health_unit_id: healthUnitId },
       });
-     console.log(favorite)
+      console.log(favorite);
       if (!favorite) {
-        throw new CustomError('Favorito não encontrado.', 404, 'FAVORITE_NOT_FOUND');
+        throw new CustomError(
+          'Favorito não encontrado.',
+          404,
+          'FAVORITE_NOT_FOUND'
+        );
       }
 
       await this.favoriteRepository.remove(favorite);
@@ -98,17 +117,24 @@ import CustomError from '../utils/CustomError';
     }
   }
 
-  public async getFavoriteByHealthUnit(userId: number, healthUnitId: number): Promise<Favorite | null> {
+  public async getFavoriteByHealthUnit(
+    userId: number,
+    healthUnitId: number
+  ): Promise<Favorite | null> {
     try {
       const favorite = await this.favoriteRepository.findOne({
         where: { user_id: userId, health_unit_id: healthUnitId },
         relations: ['user', 'healthUnit'],
       });
-  
+
       if (!favorite) {
-        throw new CustomError('Favorito não encontrado.', 404, 'FAVORITE_NOT_FOUND');
+        throw new CustomError(
+          'Favorito não encontrado.',
+          404,
+          'FAVORITE_NOT_FOUND'
+        );
       }
-  
+
       return favorite;
     } catch (error) {
       if (error instanceof CustomError) throw error;
@@ -119,7 +145,6 @@ import CustomError from '../utils/CustomError';
       );
     }
   }
-  
 }
 
-export default new FavoriteService()
+export default new FavoriteService();

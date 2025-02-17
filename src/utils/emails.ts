@@ -29,7 +29,8 @@ async function sendAccountVerificationEmail(
   console.log('Token de verificação:', token);
   const transporter = createTransporter();
   const verificationUrl = `${siteUrl}/auth/verify?token=${token}&email=${email}`;
-  const emailContent = 'Para concluir seu cadastro no Web Saúde, clique no botão abaixo para verificar seu e-mail:';
+  const emailContent =
+    'Para concluir seu cadastro no Web Saúde, clique no botão abaixo para verificar seu e-mail:';
 
   const mailOptions: SendMailOptions = {
     from: `Web Saúde <${process.env.EMAIL}>`,
@@ -54,7 +55,8 @@ async function sendPasswordRecoveryEmail(
 ): Promise<void> {
   const transporter = createTransporter();
   const resetUrl = `${siteUrl}/auth/reset-password?token=${resetToken}&email=${email}`;
-  const emailContent = 'Para redefinir sua senha no Web Saúde, clique no link abaixo:';
+  const emailContent =
+    'Para redefinir sua senha no Web Saúde, clique no link abaixo:';
 
   const mailOptions: SendMailOptions = {
     from: `Web Saúde <${process.env.EMAIL}>`,
@@ -81,7 +83,8 @@ async function sendFinalizationEmail(
 ): Promise<void> {
   const transporter = createTransporter();
   const url = `${siteUrl}/rota?token=${token}&email=${email}`;
-  const emailContent = 'Sua solicitação de cadastro foi aprovada. Para finalizar o cadastro do seu estabelecimento, clique no link abaixo:';
+  const emailContent =
+    'Sua solicitação de cadastro foi aprovada. Para finalizar o cadastro do seu estabelecimento, clique no link abaixo:';
 
   const mailOptions: SendMailOptions = {
     from: `Web Saúde <${process.env.EMAIL}>`,
