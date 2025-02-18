@@ -70,43 +70,43 @@ userRouter.get(
   }
 );
 
-// Rota para alterar informações do usuário
 userRouter.put(
-  '/user/',
+  "/user/",
   verifyToken(),
-  upload.single('image'),
+  upload.single("image"),
 
   async (req: UserRequest, res: Response) => {
     try {
       const updateValidationRules = [
-        { field: 'name', required: true },
-        { field: 'phone', required: true },
+        { field: "name", required: true },
+        { field: "phone", required: true },
       ];
 
-      if (!req.file) {
-        res.status(400).json({ error: 'Arquivo de imagem não encontrado' });
-        return;
+      let imageUrl = req.body.image; 
+
+      if (req.file) {
+        const filePath = path.resolve(req.file.path);
+        const uploadResult = await cloudinaryService.uploadImage(filePath);
+        imageUrl = uploadResult; 
       }
 
-      const filePath = path.resolve(req.file.path);
+      req.body.image = imageUrl; 
 
-      const uploadResult = await cloudinaryService.uploadImage(filePath);
-
-      req.body.image = uploadResult;
       const errors = validateFields(req.body, updateValidationRules);
 
       if (errors.length) {
         res.status(400).json({ errors });
-        return;
+        return
       }
 
       const updatedUser = await userService.modifyUser(
         Number(req.userId),
         req.body
       );
+
       res.status(200).json(updatedUser);
     } catch (error) {
-      console.error('Erro ao atualizar usuário:', error);
+      console.error("Erro ao atualizar usuário:", error);
       if (error instanceof CustomError) {
         res.status(error.statusCode).json({
           error: error.message,
@@ -118,7 +118,7 @@ userRouter.put(
           error:
             error instanceof Error
               ? error.message
-              : 'Erro interno ao atualizar o usuário',
+              : "Erro interno ao atualizar o usuário",
           stack: error instanceof Error ? error.stack : null,
         });
       }
