@@ -24,7 +24,7 @@ import HealthUnitImage from './HealthUnitImage';
 export enum HealthUnitType {
   Clinic = 'clinic',
   Hospital = 'hospital',
-}
+} 
 interface IHealthUnit {
   id: number;
   name: string;

@@ -54,13 +54,12 @@ operatingHoursRouter.get(
 );
 
 operatingHoursRouter.put(
-  '/operating-hours/:id',
+  '/operating-hours',
   async (req: Request, res: Response) => {
     try {
-      const id = parseInt(req.params.id, 10);
-      const data = req.body;
-      const updatedOperatingHour = await operatingHoursService.update(id, data);
-      res.status(200).json(updatedOperatingHour);
+      const data = req.body; // Esperando um array de objetos
+      const updatedOperatingHours = await operatingHoursService.update(data);
+      res.status(200).json(updatedOperatingHours);
     } catch (error) {
       if (error instanceof CustomError) {
         res.status(error.statusCode).json({

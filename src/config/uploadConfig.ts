@@ -15,6 +15,6 @@ const upload = multer({
   },
 });
 
-export const uploadMultiple = upload.array('images', 10); // Limita a 10 arquivos
+export const uploadMultiple = upload.array('images', 10); 
 
 export default upload;

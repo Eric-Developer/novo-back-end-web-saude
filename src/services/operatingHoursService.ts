@@ -16,10 +16,8 @@ class OperatingHoursService {
     const createdOperatingHours: OperatingHours[] = [];
 
     for (const item of data) {
-      // Valida cada horário de funcionamento
       await this.validateOperatingHoursConflict(item);
 
-      // Cria e salva cada horário de funcionamento individualmente
       const newOperatingHours = this.operatingHoursRepository.create(item);
       const savedOperatingHours =
         await this.operatingHoursRepository.save(newOperatingHours);
@@ -37,7 +35,7 @@ class OperatingHoursService {
 
   public async getById(id: number): Promise<OperatingHours | null> {
     return await this.operatingHoursRepository.findOne({
-      where: { id },
+      where: { id: id },
       relations: ['health_unit'],
     });
   }
@@ -52,25 +50,33 @@ class OperatingHoursService {
   }
 
   public async update(
-    id: number,
-    data: Partial<OperatingHours>
-  ): Promise<OperatingHours> {
-    const operatingHours = await this.getById(id);
-    if (!operatingHours) {
-      throw new CustomError(
-        'Horário de funcionamento não encontrado',
-        404,
-        'OPERATING_HOURS_NOT_FOUND',
-        { id }
-      );
+    data: Partial<OperatingHours>[]
+  ): Promise<OperatingHours[]> {
+    const updatedOperatingHours: OperatingHours[] = [];
+  
+    for (const item of data) {
+      const operatingHours = await this.getById(Number(item.id));
+      console.log(operatingHours)
+      console.log(item.id)
+      if (!operatingHours) {
+        throw new CustomError(
+          'Horário de funcionamento não encontrado',
+          404,
+          'OPERATING_HOURS_NOT_FOUND',
+          { id: item.id }
+        );
+      }
+  
+      await this.validateOperatingHoursConflict(item, item.id);
+      Object.assign(operatingHours, item);
+  
+      const updated = await this.operatingHoursRepository.save(operatingHours);
+      updatedOperatingHours.push(updated);
     }
-
-    await this.validateOperatingHoursConflict(data, id);
-    Object.assign(operatingHours, data);
-
-    return await this.operatingHoursRepository.save(operatingHours);
+  
+    return updatedOperatingHours;
   }
-
+  
   public async delete(id: number): Promise<void> {
     const operatingHours = await this.getById(id);
     if (!operatingHours) {

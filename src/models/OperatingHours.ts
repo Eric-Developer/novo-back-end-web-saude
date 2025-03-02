@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
 import HealthUnit from './HealthUnit';
 
 export enum Day {
@@ -25,6 +26,7 @@ interface IOperatingHours {
   open_time: string | null;
   close_time: string | null;
   is_closed: boolean;
+  is_24_hours: boolean;
   health_unit_id: number;
 }
 
@@ -47,6 +49,9 @@ export default class OperatingHours implements IOperatingHours {
 
   @Column({ type: 'boolean', default: false })
   is_closed: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  is_24_hours: boolean;
 
   @Column()
   health_unit_id: number;
